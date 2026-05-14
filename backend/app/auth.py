@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta, timezone
+import secrets
 import bcrypt
 from jose import JWTError, jwt
 from fastapi import Depends, HTTPException, status
@@ -18,6 +19,26 @@ def hash_password(password: str) -> str:
 
 def verify_password(plain: str, hashed: str) -> bool:
     return bcrypt.checkpw(plain.encode("utf-8"), hashed.encode("utf-8"))
+
+
+def create_refresh_token() -> str:
+    return secrets.token_urlsafe(64)
+
+
+def validate_password(password: str) -> None:
+    """Valida que la contrasena cumpla requisitos minimos."""
+    errors = []
+    if len(password) < 8:
+        errors.append("minimo 8 caracteres")
+    if not any(c.isupper() for c in password):
+        errors.append("al menos una mayuscula")
+    if not any(c.isdigit() for c in password):
+        errors.append("al menos un numero")
+    if errors:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Contrasena debil: {', '.join(errors)}"
+        )
 
 
 def create_access_token(data: dict, expires_delta: timedelta | None = None) -> str:

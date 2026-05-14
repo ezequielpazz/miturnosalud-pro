@@ -13,10 +13,15 @@ class LoginRequest(BaseModel):
 
 class TokenResponse(BaseModel):
     access_token: str
+    refresh_token: str
     token_type: str = "bearer"
     rol: str
     nombre: str
     user_id: int
+
+
+class RefreshRequest(BaseModel):
+    refresh_token: str
 
 
 class CambiarPasswordRequest(BaseModel):
@@ -72,6 +77,8 @@ class PacienteCreate(BaseModel):
     fecha_nacimiento: date | None = None
     direccion: str = ""
     password: str
+    obra_social_id: int | None = None
+    numero_afiliado: str | None = None
 
 
 class PacienteUpdate(BaseModel):
@@ -79,6 +86,8 @@ class PacienteUpdate(BaseModel):
     direccion: str | None = None
     notas_clinicas: str | None = None
     requiere_turno: bool | None = None
+    obra_social_id: int | None = None
+    numero_afiliado: str | None = None
 
 
 class PacienteOut(BaseModel):
@@ -92,6 +101,8 @@ class PacienteOut(BaseModel):
     notas_clinicas: str | None
     activo: bool
     requiere_turno: bool
+    obra_social_id: int | None = None
+    numero_afiliado: str | None = None
     model_config = {"from_attributes": True}
 
 
@@ -187,3 +198,47 @@ class ReporteEspecialidad(BaseModel):
     cancelados: int
     precio_base: Decimal
     ingresos_estimados: Decimal
+
+
+# ==================== OBRA SOCIAL ====================
+
+class ObraSocialCreate(BaseModel):
+    nombre: str
+    codigo: str
+
+
+class ObraSocialOut(BaseModel):
+    id: int
+    nombre: str
+    codigo: str
+    activo: bool
+    model_config = {"from_attributes": True}
+
+
+# ==================== PAGOS ====================
+
+class PagoCreate(BaseModel):
+    id_turno: int
+    monto: Decimal
+    metodo: str
+    obra_social: str = ""
+    notas: str = ""
+
+
+class PagoUpdate(BaseModel):
+    estado: str | None = None
+    monto: Decimal | None = None
+    metodo: str | None = None
+    notas: str | None = None
+
+
+class PagoOut(BaseModel):
+    id: int
+    id_turno: int
+    monto: Decimal
+    metodo: str
+    obra_social: str
+    estado: str
+    notas: str | None
+    fecha_pago: datetime | None
+    model_config = {"from_attributes": True}

@@ -48,4 +48,20 @@
   .sidebar-item.active {
     @apply bg-primary-50 text-primary-600 font-semibold border-r-[3px] border-primary-600;
   }
+  .dark .sidebar-item {
+    @apply text-slate-300 hover:bg-slate-800 hover:text-white;
+  }
+  .dark .sidebar-item.active {
+    @apply bg-primary-900/30 text-primary-400 border-primary-400;
+  }
+}
+
+.dark body {
+  background-color: rgb(2 6 23);
+  color: rgb(226 232 240);
+}
+
+.dark .card {
+  background-color: rgb(30 41 59);
+  border-color: rgb(51 65 85);
 }

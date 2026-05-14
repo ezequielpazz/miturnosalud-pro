@@ -22,6 +22,7 @@ export function AuthProvider({ children }) {
   const login = async (email, password, rol) => {
     const res = await apiLogin({ email, password, rol });
     localStorage.setItem('token', res.data.access_token);
+    localStorage.setItem('refresh_token', res.data.refresh_token);
     localStorage.setItem('rol', res.data.rol);
     const me = await getMe();
     setUser(me.data);

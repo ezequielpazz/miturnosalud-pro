@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from app.database import get_db
 from app import models, schemas
-from app.auth import require_admin, get_current_user, hash_password
+from app.auth import require_admin, get_current_user, hash_password, validate_password
 
 router = APIRouter(prefix="/api/medicos", tags=["Médicos"])
 
@@ -54,6 +54,7 @@ def crear_medico(
         raise HTTPException(status_code=400, detail="Especialidad inválida")
     if db.query(models.Medico).filter(models.Medico.email == data.email).first():
         raise HTTPException(status_code=400, detail="Email ya registrado")
+    validate_password(data.password)
 
     medico = models.Medico(
         nombre=data.nombre,

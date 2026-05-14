@@ -10,10 +10,26 @@ api.interceptors.request.use((config) => {
 
 api.interceptors.response.use(
   (res) => res,
-  (err) => {
-    if (err.response?.status === 401) {
-      localStorage.clear();
-      window.location.href = '/login';
+  async (err) => {
+    const originalRequest = err.config;
+    if (err.response?.status === 401 && !originalRequest._retry) {
+      originalRequest._retry = true;
+      const rt = localStorage.getItem('refresh_token');
+      if (rt) {
+        try {
+          const res = await axios.post('/api/auth/refresh', { refresh_token: rt });
+          localStorage.setItem('token', res.data.access_token);
+          localStorage.setItem('refresh_token', res.data.refresh_token);
+          originalRequest.headers.Authorization = `Bearer ${res.data.access_token}`;
+          return api(originalRequest);
+        } catch {
+          localStorage.clear();
+          window.location.href = '/login';
+        }
+      } else {
+        localStorage.clear();
+        window.location.href = '/login';
+      }
     }
     return Promise.reject(err);
   }
@@ -23,6 +39,7 @@ api.interceptors.response.use(
 export const login = (data) => api.post('/auth/login', data);
 export const getMe = () => api.get('/auth/me');
 export const cambiarPassword = (data) => api.put('/auth/cambiar-password', data);
+export const refreshToken = (data) => api.post('/auth/refresh', data);
 
 // Médicos
 export const getMedicos = (params) => api.get('/medicos/', { params });
@@ -72,5 +89,28 @@ export const getEspecialidadesPublico = () => publicApi.get('/publico/especialid
 export const getMedicosPublico = (especialidad) => publicApi.get('/publico/medicos', { params: { especialidad } });
 export const getDisponibilidadPublico = (params) => publicApi.get('/publico/disponibilidad', { params });
 export const reservarTurnoPublico = (data) => publicApi.post('/publico/reservar', data);
+
+// Obras sociales
+export const getObrasSociales = (params) => api.get('/obras-sociales/', { params });
+export const createObraSocial = (data) => api.post('/obras-sociales/', data);
+export const updateObraSocial = (id, data) => api.put(`/obras-sociales/${id}`, data);
+export const toggleObraSocial = (id) => api.patch(`/obras-sociales/${id}/toggle`);
+
+// Pagos
+export const getPagos = (params) => api.get('/pagos/', { params });
+export const createPago = (data) => api.post('/pagos/', data);
+export const updatePago = (id, data) => api.put(`/pagos/${id}`, data);
+export const getPagosPorTurno = (turnoId) => api.get(`/pagos/turno/${turnoId}`);
+
+// Comprobantes
+export const descargarComprobante = (turnoId) =>
+  api.get(`/comprobantes/${turnoId}`, { responseType: 'blob' }).then(res => {
+    const url = window.URL.createObjectURL(new Blob([res.data], { type: 'application/pdf' }));
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `comprobante_turno_${turnoId}.pdf`;
+    a.click();
+    window.URL.revokeObjectURL(url);
+  });
 
 export default api;

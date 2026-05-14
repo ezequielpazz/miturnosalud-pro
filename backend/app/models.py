@@ -61,7 +61,11 @@ class Paciente(Base):
     password_hash = Column(String(255), nullable=False)
     activo = Column(Boolean, default=True)
     requiere_turno = Column(Boolean, default=False)
+    obra_social_id = Column(Integer, ForeignKey("obras_sociales.id"), nullable=True)
+    numero_afiliado = Column(String(50), nullable=True)
     created_at = Column(DateTime, server_default=func.now())
+
+    obra_social = relationship("ObraSocial")
 
     turnos = relationship("Turno", back_populates="paciente")
 
@@ -124,3 +128,36 @@ class Mascota(Base):
     created_at = Column(DateTime, server_default=func.now())
 
     dueno = relationship("Paciente", backref="mascotas")
+
+
+class RefreshToken(Base):
+    __tablename__ = "refresh_tokens"
+    id = Column(Integer, primary_key=True, index=True)
+    token = Column(String(255), unique=True, nullable=False, index=True)
+    user_email = Column(String(150), nullable=False)
+    user_rol = Column(String(20), nullable=False)
+    expires_at = Column(DateTime, nullable=False)
+    revoked = Column(Boolean, default=False)
+    created_at = Column(DateTime, server_default=func.now())
+
+
+class ObraSocial(Base):
+    __tablename__ = "obras_sociales"
+    id = Column(Integer, primary_key=True, index=True)
+    nombre = Column(String(100), nullable=False)
+    codigo = Column(String(20), unique=True, nullable=False)
+    activo = Column(Boolean, default=True)
+    created_at = Column(DateTime, server_default=func.now())
+
+
+class Pago(Base):
+    __tablename__ = "pagos"
+    id = Column(Integer, primary_key=True, index=True)
+    id_turno = Column(Integer, ForeignKey("turnos.id"), nullable=False)
+    monto = Column(Numeric(12, 2), nullable=False)
+    metodo = Column(String(30), nullable=False)
+    obra_social = Column(String(100), default="")
+    estado = Column(String(20), default="pendiente")
+    notas = Column(Text, default="")
+    fecha_pago = Column(DateTime, server_default=func.now())
+    turno = relationship("Turno", backref="pagos")

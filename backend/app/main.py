@@ -6,7 +6,7 @@ from slowapi.util import get_remote_address
 from app.config import get_settings
 from app.database import engine, Base, SessionLocal
 from app.routers import auth, medicos, pacientes, turnos, tarifas, reportes, backups
-from app.routers import publico, mascotas
+from app.routers import publico, mascotas, obras_sociales, pagos, comprobantes
 
 settings = get_settings()
 
@@ -41,6 +41,9 @@ app.include_router(reportes.router)
 app.include_router(backups.router)
 app.include_router(publico.router)
 app.include_router(mascotas.router)
+app.include_router(obras_sociales.router)
+app.include_router(pagos.router)
+app.include_router(comprobantes.router)
 
 
 @app.on_event("startup")

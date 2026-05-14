@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from app.database import get_db
 from app import models, schemas
-from app.auth import require_admin, require_admin_or_medico, get_current_user, hash_password
+from app.auth import require_admin, require_admin_or_medico, get_current_user, hash_password, validate_password
 
 router = APIRouter(prefix="/api/pacientes", tags=["Pacientes"])
 
@@ -48,6 +48,7 @@ def crear_paciente(
         raise HTTPException(status_code=400, detail="Email ya registrado")
     if data.dni and db.query(models.Paciente).filter(models.Paciente.dni == data.dni).first():
         raise HTTPException(status_code=400, detail="DNI ya registrado")
+    validate_password(data.password)
 
     paciente = models.Paciente(
         nombre=data.nombre,
@@ -57,6 +58,8 @@ def crear_paciente(
         fecha_nacimiento=data.fecha_nacimiento,
         direccion=data.direccion,
         password_hash=hash_password(data.password),
+        obra_social_id=data.obra_social_id,
+        numero_afiliado=data.numero_afiliado,
     )
     db.add(paciente)
     db.commit()

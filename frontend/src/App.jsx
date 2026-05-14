@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { ThemeProvider } from './context/ThemeContext';
 import Layout from './components/Layout';
 import Login from './pages/Login';
 import Perfil from './pages/Perfil';
@@ -14,6 +15,8 @@ import Pacientes from './pages/admin/Pacientes';
 import Tarifas from './pages/admin/Tarifas';
 import Reportes from './pages/admin/Reportes';
 import Backups from './pages/admin/Backups';
+import Pagos from './pages/admin/Pagos';
+import ObrasSociales from './pages/admin/ObrasSociales';
 
 // Médico
 import TurnosHoy from './pages/medico/TurnosHoy';
@@ -55,6 +58,8 @@ function AppRoutes() {
         <Route path="pacientes" element={<Pacientes />} />
         <Route path="tarifas" element={<Tarifas />} />
         <Route path="reportes" element={<Reportes />} />
+        <Route path="pagos" element={<Pagos />} />
+        <Route path="obras-sociales" element={<ObrasSociales />} />
         <Route path="backups" element={<Backups />} />
       </Route>
 
@@ -84,12 +89,14 @@ function AppRoutes() {
 
 export default function App() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <BrowserRouter>
-        <AuthProvider>
-          <AppRoutes />
-        </AuthProvider>
-      </BrowserRouter>
-    </QueryClientProvider>
+    <ThemeProvider>
+      <QueryClientProvider client={queryClient}>
+        <BrowserRouter>
+          <AuthProvider>
+            <AppRoutes />
+          </AuthProvider>
+        </BrowserRouter>
+      </QueryClientProvider>
+    </ThemeProvider>
   );
 }

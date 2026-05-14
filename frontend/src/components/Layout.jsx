@@ -1,10 +1,11 @@
 import { useState } from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
 import {
   Heart, LayoutDashboard, Phone, CalendarDays, Users, UserCog, DollarSign,
   FileText, Database, CalendarClock, Calendar, User, PlusCircle, Stethoscope,
-  Menu, X, LogOut, Bell
+  Menu, X, LogOut, Bell, Sun, Moon, CreditCard, Shield
 } from 'lucide-react';
 
 const navConfig = {
@@ -16,6 +17,8 @@ const navConfig = {
     { to: '/admin/pacientes', icon: Users, label: 'Pacientes' },
     { to: '/admin/tarifas', icon: DollarSign, label: 'Tarifas' },
     { to: '/admin/reportes', icon: FileText, label: 'Reportes' },
+    { to: '/admin/pagos', icon: CreditCard, label: 'Pagos' },
+    { to: '/admin/obras-sociales', icon: Shield, label: 'Obras sociales' },
     { to: '/admin/backups', icon: Database, label: 'Backups' },
   ],
   medico: [
@@ -36,6 +39,7 @@ const roleLabels = { admin: 'ADMINISTRADOR', medico: 'MEDICO', paciente: 'PACIEN
 
 export default function Layout() {
   const { user, logout } = useAuth();
+  const { dark, toggle } = useTheme();
   const navigate = useNavigate();
   const [mobileOpen, setMobileOpen] = useState(false);
   const rol = user?.rol || 'admin';
@@ -63,28 +67,28 @@ export default function Layout() {
   return (
     <div className="flex min-h-screen">
       {/* Desktop Sidebar */}
-      <aside className="hidden md:flex w-64 bg-white border-r border-slate-100 flex-col fixed h-full z-30">
-        <div className="p-6 border-b border-slate-100">
+      <aside className="hidden md:flex w-64 bg-white dark:bg-slate-900 border-r border-slate-100 dark:border-slate-800 flex-col fixed h-full z-30">
+        <div className="p-6 border-b border-slate-100 dark:border-slate-800">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-gradient-to-br from-primary-600 to-indigo-500 rounded-xl flex items-center justify-center">
               <Heart size={20} className="text-white" />
             </div>
             <div>
-              <h1 className="font-bold text-slate-900 text-sm">MiTurno Salud</h1>
-              <span className="text-xs text-slate-400 font-medium">{roleLabels[rol]}</span>
+              <h1 className="font-bold text-slate-900 dark:text-white text-sm">MiTurno Salud</h1>
+              <span className="text-xs text-slate-400 dark:text-slate-400 font-medium">{roleLabels[rol]}</span>
             </div>
           </div>
         </div>
         <nav className="flex-1 py-4 overflow-y-auto">
           <NavItems />
         </nav>
-        <div className="p-4 border-t border-slate-100">
+        <div className="p-4 border-t border-slate-100 dark:border-slate-800">
           <div className="flex items-center gap-3 mb-3">
             <div className="w-9 h-9 bg-primary-100 rounded-full flex items-center justify-center">
               <User size={16} className="text-primary-600" />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-semibold text-slate-800 truncate">{user?.nombre}</p>
+              <p className="text-sm font-semibold text-slate-800 dark:text-white truncate">{user?.nombre}</p>
               <p className="text-xs text-slate-400 truncate">{user?.email}</p>
             </div>
           </div>
@@ -98,20 +102,20 @@ export default function Layout() {
       {mobileOpen && (
         <div className="fixed inset-0 z-50 md:hidden">
           <div className="absolute inset-0 bg-black/40" onClick={() => setMobileOpen(false)} />
-          <aside className="relative w-72 bg-white h-full shadow-2xl flex flex-col">
-            <div className="p-5 border-b border-slate-100 flex items-center justify-between">
+          <aside className="relative w-72 bg-white dark:bg-slate-900 h-full shadow-2xl flex flex-col">
+            <div className="p-5 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="w-9 h-9 bg-gradient-to-br from-primary-600 to-indigo-500 rounded-xl flex items-center justify-center">
                   <Heart size={16} className="text-white" />
                 </div>
-                <span className="font-bold text-sm">MiTurno Salud</span>
+                <span className="font-bold text-sm dark:text-white">MiTurno Salud</span>
               </div>
-              <button onClick={() => setMobileOpen(false)} className="text-slate-400 hover:text-slate-600">
+              <button onClick={() => setMobileOpen(false)} className="text-slate-400 hover:text-slate-600 dark:hover:text-white">
                 <X size={20} />
               </button>
             </div>
             <nav className="flex-1 py-4"><NavItems /></nav>
-            <div className="p-4 border-t border-slate-100">
+            <div className="p-4 border-t border-slate-100 dark:border-slate-800">
               <button onClick={handleLogout} className="w-full flex items-center gap-2 text-sm text-red-500 py-2">
                 <LogOut size={16} /> Cerrar sesion
               </button>
@@ -121,15 +125,18 @@ export default function Layout() {
       )}
 
       {/* Main Content */}
-      <main className="flex-1 md:ml-64">
-        <header className="bg-white border-b border-slate-100 sticky top-0 z-20">
+      <main className="flex-1 md:ml-64 bg-slate-50 dark:bg-slate-950">
+        <header className="bg-white dark:bg-slate-900 border-b border-slate-100 dark:border-slate-800 sticky top-0 z-20">
           <div className="flex items-center justify-between px-4 md:px-8 py-4">
-            <button onClick={() => setMobileOpen(true)} className="md:hidden text-slate-500 hover:text-slate-700">
+            <button onClick={() => setMobileOpen(true)} className="md:hidden text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-white">
               <Menu size={24} />
             </button>
             <div />
             <div className="flex items-center gap-3">
-              <button className="relative w-10 h-10 bg-slate-50 rounded-xl flex items-center justify-center text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-all">
+              <button onClick={toggle} className="w-10 h-10 bg-slate-50 dark:bg-slate-700 rounded-xl flex items-center justify-center text-slate-400 dark:text-slate-300 hover:text-slate-600 dark:hover:text-white transition-all">
+                {dark ? <Sun size={18} /> : <Moon size={18} />}
+              </button>
+              <button className="relative w-10 h-10 bg-slate-50 dark:bg-slate-700 rounded-xl flex items-center justify-center text-slate-400 dark:text-slate-300 hover:text-slate-600 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-600 transition-all">
                 <Bell size={18} />
               </button>
             </div>

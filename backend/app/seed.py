@@ -91,5 +91,18 @@ def seed_database(db: Session):
             t.nota_medica = "Paciente evoluciona bien."
         db.add(t)
 
+    # ── Obras Sociales ──
+    obras_sociales_data = [
+        ("OSDE", "OSDE"),
+        ("Swiss Medical", "SWMD"),
+        ("Galeno", "GALE"),
+        ("Medife", "MDFE"),
+        ("IOMA", "IOMA"),
+        ("PAMI", "PAMI"),
+        ("Particular", "PART"),
+    ]
+    for nombre, codigo in obras_sociales_data:
+        db.add(models.ObraSocial(nombre=nombre, codigo=codigo))
+
     db.commit()
     print("Datos de prueba cargados correctamente.")
