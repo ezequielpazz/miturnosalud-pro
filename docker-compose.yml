@@ -1,0 +1,38 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: miturnosalud
+      POSTGRES_USER: miturnosalud
+      POSTGRES_PASSWORD: miturnosalud2026
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U miturnosalud"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build: ./backend
+    environment:
+      DATABASE_URL: postgresql://miturnosalud:miturnosalud2026@db:5432/miturnosalud
+      SECRET_KEY: miturnosalud-produccion-cambiar-este-secret-2026
+      CORS_ORIGINS: '["http://localhost", "http://localhost:80"]'
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "8000:8000"
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+
+volumes:
+  pgdata:

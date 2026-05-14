@@ -1,0 +1,51 @@
+@import "tailwindcss";
+
+@theme {
+  --color-primary-50: #eef7ff;
+  --color-primary-100: #d9edff;
+  --color-primary-200: #bce0ff;
+  --color-primary-300: #8eccff;
+  --color-primary-400: #59b0ff;
+  --color-primary-500: #3391ff;
+  --color-primary-600: #1a73f5;
+  --color-primary-700: #1260e1;
+  --color-primary-800: #154db6;
+  --color-primary-900: #15418f;
+}
+
+@layer base {
+  body {
+    @apply bg-gray-50 text-slate-800 antialiased m-0;
+    font-family: 'Inter', system-ui, sans-serif;
+  }
+  #root {
+    @apply min-h-screen;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply bg-gradient-to-r from-primary-600 to-indigo-500 text-white font-semibold rounded-xl
+           hover:shadow-lg hover:shadow-primary-600/30 hover:-translate-y-0.5 transition-all duration-200;
+  }
+  .btn-secondary {
+    @apply border border-slate-200 text-slate-600 font-semibold rounded-xl hover:bg-slate-50 transition-all;
+  }
+  .card {
+    @apply bg-white rounded-2xl border border-slate-100;
+  }
+  .input-field {
+    @apply w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm outline-none
+           focus:ring-2 focus:ring-primary-200 focus:border-primary-500 transition-all;
+  }
+  .badge {
+    @apply text-xs px-2.5 py-0.5 rounded-full font-semibold;
+  }
+  .sidebar-item {
+    @apply w-full flex items-center gap-3 px-6 py-3 text-sm text-slate-500 transition-all duration-200
+           hover:bg-primary-50 hover:text-primary-600;
+  }
+  .sidebar-item.active {
+    @apply bg-primary-50 text-primary-600 font-semibold border-r-[3px] border-primary-600;
+  }
+}
