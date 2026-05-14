@@ -2,6 +2,10 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getDashboard, getTurnosHoy, getReportePorEspecialidad } from '../../lib/api';
 import { CalendarCheck, CheckCircle, UserX, DollarSign, ArrowUp, ArrowDown, Clock, Phone, Stethoscope, FileText, Database } from 'lucide-react';
+import {
+  BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer,
+  LineChart, Line, CartesianGrid,
+} from 'recharts';
 
 const statusBadge = {
   programado: 'bg-slate-100 text-slate-600',
@@ -9,6 +13,23 @@ const statusBadge = {
   cancelado: 'bg-red-100 text-red-600',
   ausente: 'bg-amber-100 text-amber-700',
 };
+
+function agruparPorFecha(turnos) {
+  const map = {};
+  turnos.forEach((t) => {
+    const fecha = t.fecha ? t.fecha.slice(0, 10) : null;
+    if (!fecha) return;
+    map[fecha] = (map[fecha] || 0) + 1;
+  });
+  // Last 7 distinct dates sorted
+  return Object.entries(map)
+    .sort(([a], [b]) => a.localeCompare(b))
+    .slice(-7)
+    .map(([fecha, total]) => ({
+      fecha: fecha.slice(5), // MM-DD
+      total,
+    }));
+}
 
 export default function Dashboard() {
   const [stats, setStats] = useState(null);
@@ -30,6 +51,13 @@ export default function Dashboard() {
     { label: 'Ausentes', value: stats.ausentes, icon: UserX, color: 'bg-amber-50 text-amber-600', trend: '-3%', up: false },
     { label: 'Ingresos estimados', value: `$${Number(stats.ingresos_estimados).toLocaleString('es-AR')}`, icon: DollarSign, color: 'bg-violet-50 text-violet-600', trend: '+15%', up: true },
   ];
+
+  const barData = especialidades.map((e) => ({
+    especialidad: e.especialidad,
+    total: e.completados + e.ausentes + e.cancelados,
+  }));
+
+  const lineData = agruparPorFecha(turnos);
 
   return (
     <div className="space-y-6">
@@ -53,6 +81,24 @@ export default function Dashboard() {
           </div>
         ))}
       </div>
+
+      {/* Line chart — turnos últimos 7 días */}
+      {lineData.length > 0 && (
+        <div className="card p-5">
+          <h3 className="font-bold text-slate-900 mb-3 text-sm">Turnos — últimos 7 días</h3>
+          <ResponsiveContainer width="100%" height={120}>
+            <LineChart data={lineData} margin={{ top: 4, right: 16, left: -32, bottom: 0 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+              <XAxis dataKey="fecha" tick={{ fontSize: 11, fill: '#94a3b8' }} tickLine={false} axisLine={false} />
+              <Tooltip
+                contentStyle={{ fontSize: 12, borderRadius: 8, border: '1px solid #e2e8f0' }}
+                formatter={(v) => [v, 'Turnos']}
+              />
+              <Line type="monotone" dataKey="total" stroke="#1e40af" strokeWidth={2} dot={{ r: 3, fill: '#1e40af' }} activeDot={{ r: 5 }} />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
+      )}
 
       <div className="grid lg:grid-cols-3 gap-6">
         {/* Turnos de hoy */}
@@ -83,26 +129,33 @@ export default function Dashboard() {
 
         {/* Sidebar */}
         <div className="space-y-6">
-          {/* Por especialidad */}
+          {/* Por especialidad — Recharts BarChart */}
           <div className="card p-5">
             <h3 className="font-bold text-slate-900 mb-4">Por especialidad</h3>
-            <div className="space-y-3">
-              {especialidades.map((e) => {
-                const total = e.completados + e.ausentes + e.cancelados;
-                const maxTotal = Math.max(...especialidades.map(x => x.completados + x.ausentes + x.cancelados), 1);
-                return (
-                  <div key={e.especialidad}>
-                    <div className="flex justify-between text-xs mb-1">
-                      <span className="text-slate-600 font-medium">{e.especialidad}</span>
-                      <span className="text-slate-400">{total} turnos</span>
-                    </div>
-                    <div className="w-full bg-slate-100 rounded-full h-2">
-                      <div className="bg-primary-500 h-2 rounded-full" style={{ width: `${(total / maxTotal) * 100}%` }} />
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
+            {barData.length > 0 ? (
+              <ResponsiveContainer width="100%" height={200}>
+                <BarChart data={barData} margin={{ top: 4, right: 4, left: -28, bottom: 40 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+                  <XAxis
+                    dataKey="especialidad"
+                    tick={{ fontSize: 10, fill: '#64748b' }}
+                    tickLine={false}
+                    axisLine={false}
+                    angle={-35}
+                    textAnchor="end"
+                    interval={0}
+                  />
+                  <YAxis tick={{ fontSize: 10, fill: '#94a3b8' }} tickLine={false} axisLine={false} allowDecimals={false} />
+                  <Tooltip
+                    contentStyle={{ fontSize: 12, borderRadius: 8, border: '1px solid #e2e8f0' }}
+                    formatter={(v) => [v, 'Turnos']}
+                  />
+                  <Bar dataKey="total" fill="#1e40af" radius={[4, 4, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            ) : (
+              <p className="text-sm text-slate-400 text-center py-8">Sin datos</p>
+            )}
           </div>
 
           {/* Quick actions */}

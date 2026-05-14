@@ -21,6 +21,17 @@ class Settings(BaseSettings):
     # CORS
     CORS_ORIGINS: list[str] = ["http://localhost:5173", "http://localhost:3000"]
 
+    # Email (SMTP)
+    SMTP_HOST: str = ""
+    SMTP_PORT: int = 465
+    SMTP_USER: str = ""
+    SMTP_PASSWORD: str = ""
+    SMTP_FROM: str = "noreply@miturnosalud.com"
+
+    # Modo clínica: "clinica" o "veterinaria"
+    CLINIC_TYPE: str = "clinica"
+    CLINIC_NAME: str = "MiTurno Salud PRO"
+
     model_config = {"env_file": ".env", "extra": "ignore"}
 
 

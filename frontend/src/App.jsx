@@ -25,6 +25,9 @@ import MisTurnos from './pages/paciente/MisTurnos';
 import SolicitarTurno from './pages/paciente/SolicitarTurno';
 import MedicosDisponibles from './pages/paciente/MedicosDisponibles';
 
+// Público
+import Reservar from './pages/Reservar';
+
 const queryClient = new QueryClient();
 
 function ProtectedRoute({ children, roles }) {
@@ -70,6 +73,9 @@ function AppRoutes() {
         <Route path="medicos" element={<MedicosDisponibles />} />
         <Route path="perfil" element={<Perfil />} />
       </Route>
+
+      {/* Público — sin auth */}
+      <Route path="/reservar" element={<Reservar />} />
 
       <Route path="*" element={<Navigate to="/login" />} />
     </Routes>

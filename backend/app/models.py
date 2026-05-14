@@ -107,3 +107,20 @@ class AuditLog(Base):
     accion = Column(String(50), nullable=False)
     detalle = Column(Text)
     created_at = Column(DateTime, server_default=func.now())
+
+
+class Mascota(Base):
+    __tablename__ = "mascotas"
+
+    id = Column(Integer, primary_key=True, index=True)
+    nombre = Column(String(100), nullable=False)
+    especie = Column(String(50), nullable=False)
+    raza = Column(String(100), default="")
+    peso_kg = Column(Numeric(5, 2), nullable=True)
+    fecha_nacimiento = Column(Date, nullable=True)
+    notas = Column(Text, default="")
+    activo = Column(Boolean, default=True)
+    id_dueno = Column(Integer, ForeignKey("pacientes.id"), nullable=False)
+    created_at = Column(DateTime, server_default=func.now())
+
+    dueno = relationship("Paciente", backref="mascotas")

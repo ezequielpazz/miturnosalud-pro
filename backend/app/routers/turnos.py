@@ -1,10 +1,11 @@
 from datetime import date, time, timedelta, datetime
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query
 from sqlalchemy.orm import Session, joinedload
 from sqlalchemy import and_
 from app.database import get_db
 from app import models, schemas
 from app.auth import get_current_user, require_admin, require_admin_or_medico
+from app.services.email import enviar_confirmacion_turno, enviar_cancelacion_turno
 
 router = APIRouter(prefix="/api/turnos", tags=["Turnos"])
 
@@ -156,6 +157,7 @@ def turnos_hoy(
 @router.post("/", response_model=schemas.TurnoOut)
 def crear_turno(
     data: schemas.TurnoCreate,
+    background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
     current: tuple = Depends(get_current_user),
 ):
@@ -188,6 +190,18 @@ def crear_turno(
     db.add(turno)
     db.commit()
     db.refresh(turno)
+
+    background_tasks.add_task(
+        enviar_confirmacion_turno,
+        paciente.email,
+        paciente.nombre,
+        paciente.nombre,
+        data.fecha.strftime("%d/%m/%Y"),
+        data.hora.strftime("%H:%M"),
+        medico.nombre,
+        medico.especialidad,
+    )
+
     return _enrich_turno(turno, db)
 
 
@@ -238,6 +252,7 @@ def crear_turno_recepcion(
 def actualizar_turno(
     turno_id: int,
     data: schemas.TurnoUpdate,
+    background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
     current: tuple = Depends(get_current_user),
 ):
@@ -261,8 +276,25 @@ def actualizar_turno(
         if not _verificar_disponibilidad(db, turno.id_medico, data.fecha, data.hora, excluir_turno_id=turno_id):
             raise HTTPException(status_code=409, detail="Horario no disponible")
 
+    cancelando = data.estado == "cancelado"
+    paciente = turno.paciente
+    medico = turno.medico
+    fecha_turno = turno.fecha
+    hora_turno = turno.hora
+
     for field, value in data.model_dump(exclude_unset=True).items():
         setattr(turno, field, value)
     db.commit()
     db.refresh(turno)
+
+    if cancelando and paciente and medico:
+        background_tasks.add_task(
+            enviar_cancelacion_turno,
+            paciente.email,
+            paciente.nombre,
+            fecha_turno.strftime("%d/%m/%Y"),
+            hora_turno.strftime("%H:%M"),
+            medico.nombre,
+        )
+
     return _enrich_turno(turno, db)

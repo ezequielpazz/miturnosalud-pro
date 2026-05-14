@@ -1,4 +1,6 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
+from slowapi import Limiter
+from slowapi.util import get_remote_address
 from sqlalchemy.orm import Session
 from app.database import get_db
 from app import models, schemas
@@ -9,9 +11,12 @@ from app.auth import (
 
 router = APIRouter(prefix="/api/auth", tags=["Auth"])
 
+limiter = Limiter(key_func=get_remote_address)
+
 
 @router.post("/login", response_model=schemas.TokenResponse)
-def login(data: schemas.LoginRequest, db: Session = Depends(get_db)):
+@limiter.limit("10/minute")
+def login(request: Request, data: schemas.LoginRequest, db: Session = Depends(get_db)):
     model_map = {
         "admin": models.Administrador,
         "medico": models.Medico,

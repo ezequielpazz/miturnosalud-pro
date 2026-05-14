@@ -61,4 +61,16 @@ export const getBackups = () => api.get('/backups/');
 export const createBackup = () => api.post('/backups/');
 export const restaurarBackup = (nombre) => api.post(`/backups/restaurar/${nombre}`);
 
+// Mascotas
+export const getMascotas = (params) => api.get('/mascotas/', { params });
+export const createMascota = (data) => api.post('/mascotas/', data);
+export const updateMascota = (id, data) => api.put(`/mascotas/${id}`, data);
+
+// Portal público (sin auth)
+const publicApi = axios.create({ baseURL: '/api' });
+export const getEspecialidadesPublico = () => publicApi.get('/publico/especialidades');
+export const getMedicosPublico = (especialidad) => publicApi.get('/publico/medicos', { params: { especialidad } });
+export const getDisponibilidadPublico = (params) => publicApi.get('/publico/disponibilidad', { params });
+export const reservarTurnoPublico = (data) => publicApi.post('/publico/reservar', data);
+
 export default api;
