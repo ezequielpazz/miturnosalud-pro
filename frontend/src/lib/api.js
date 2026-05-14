@@ -113,4 +113,33 @@ export const descargarComprobante = (turnoId) =>
     window.URL.revokeObjectURL(url);
   });
 
+// Notificaciones
+export const getNotificaciones = (params) => api.get('/notificaciones/', { params });
+export const getNotificacionesCount = () => api.get('/notificaciones/count');
+export const marcarLeida = (id) => api.put(`/notificaciones/${id}/leer`);
+export const marcarTodasLeidas = () => api.put('/notificaciones/leer-todas');
+
+// Archivos
+export const getArchivos = (pacienteId) => api.get(`/archivos/paciente/${pacienteId}`);
+export const uploadArchivo = (formData) => api.post('/archivos/upload', formData, { headers: { 'Content-Type': 'multipart/form-data' } });
+export const downloadArchivo = (id) => api.get(`/archivos/download/${id}`, { responseType: 'blob' }).then(res => {
+  const url = window.URL.createObjectURL(new Blob([res.data]));
+  const a = document.createElement('a');
+  a.href = url;
+  const disposition = res.headers['content-disposition'];
+  a.download = disposition ? disposition.split('filename=')[1]?.replace(/"/g, '') : `archivo_${id}`;
+  a.click();
+  window.URL.revokeObjectURL(url);
+});
+export const deleteArchivo = (id) => api.delete(`/archivos/${id}`);
+
+// 2FA
+export const setup2FA = () => api.post('/auth/2fa/setup', {}, { responseType: 'blob' });
+export const verify2FA = (code) => api.post('/auth/2fa/verify', { code });
+export const disable2FA = () => api.post('/auth/2fa/disable');
+export const login2FA = (data) => api.post('/auth/2fa/login', data);
+
+// Sala de espera (público)
+export const getTurnosHoyPublico = () => publicApi.get('/publico/turnos-hoy');
+
 export default api;

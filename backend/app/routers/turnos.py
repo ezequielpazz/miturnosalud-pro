@@ -1,3 +1,4 @@
+import asyncio
 from datetime import date, time, timedelta, datetime
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query
 from sqlalchemy.orm import Session, joinedload
@@ -6,6 +7,7 @@ from app.database import get_db
 from app import models, schemas
 from app.auth import get_current_user, require_admin, require_admin_or_medico
 from app.services.email import enviar_confirmacion_turno, enviar_cancelacion_turno
+from app.routers.ws import manager
 
 router = APIRouter(prefix="/api/turnos", tags=["Turnos"])
 
@@ -188,8 +190,32 @@ def crear_turno(
         creado_por=data.creado_por,
     )
     db.add(turno)
+
+    notif = models.Notificacion(
+        usuario_email=medico.email,
+        usuario_rol="medico",
+        titulo="Nuevo turno asignado",
+        mensaje=f"Turno con {paciente.nombre} el {data.fecha} a las {data.hora}",
+        tipo="turno",
+    )
+    db.add(notif)
+    notif_pac = models.Notificacion(
+        usuario_email=paciente.email,
+        usuario_rol="paciente",
+        titulo="Turno confirmado",
+        mensaje=f"Tu turno del {data.fecha} a las {data.hora} con {medico.nombre} fue confirmado",
+        tipo="turno",
+    )
+    db.add(notif_pac)
+
     db.commit()
     db.refresh(turno)
+
+    try:
+        loop = asyncio.get_event_loop()
+        loop.create_task(manager.broadcast("turnos", {"tipo": "turno_actualizado", "turno_id": turno.id}))
+    except RuntimeError:
+        pass
 
     background_tasks.add_task(
         enviar_confirmacion_turno,
@@ -286,6 +312,12 @@ def actualizar_turno(
         setattr(turno, field, value)
     db.commit()
     db.refresh(turno)
+
+    try:
+        loop = asyncio.get_event_loop()
+        loop.create_task(manager.broadcast("turnos", {"tipo": "turno_actualizado", "turno_id": turno.id}))
+    except RuntimeError:
+        pass
 
     if cancelando and paciente and medico:
         background_tasks.add_task(

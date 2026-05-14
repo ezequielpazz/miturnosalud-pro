@@ -30,6 +30,9 @@ import MedicosDisponibles from './pages/paciente/MedicosDisponibles';
 
 // Público
 import Reservar from './pages/Reservar';
+import Landing from './pages/Landing';
+import SalaEspera from './pages/SalaEspera';
+import Archivos from './pages/admin/Archivos';
 
 const queryClient = new QueryClient();
 
@@ -60,6 +63,7 @@ function AppRoutes() {
         <Route path="reportes" element={<Reportes />} />
         <Route path="pagos" element={<Pagos />} />
         <Route path="obras-sociales" element={<ObrasSociales />} />
+        <Route path="archivos" element={<Archivos />} />
         <Route path="backups" element={<Backups />} />
       </Route>
 
@@ -80,9 +84,11 @@ function AppRoutes() {
       </Route>
 
       {/* Público — sin auth */}
+      <Route path="/" element={<Landing />} />
       <Route path="/reservar" element={<Reservar />} />
+      <Route path="/sala-de-espera" element={<SalaEspera />} />
 
-      <Route path="*" element={<Navigate to="/login" />} />
+      <Route path="*" element={<Navigate to="/" />} />
     </Routes>
   );
 }

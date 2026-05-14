@@ -146,3 +146,30 @@ def reservar_turno(
     )
 
     return {"mensaje": "Turno reservado exitosamente", "turno_id": turno.id}
+
+
+@router.get("/turnos-hoy")
+def turnos_hoy_publico(db: Session = Depends(get_db)):
+    from sqlalchemy.orm import joinedload
+    hoy = date.today()
+    turnos = (
+        db.query(models.Turno)
+        .options(joinedload(models.Turno.paciente), joinedload(models.Turno.medico))
+        .filter(models.Turno.fecha == hoy)
+        .order_by(models.Turno.hora)
+        .all()
+    )
+    result = []
+    for t in turnos:
+        nombre = t.paciente.nombre if t.paciente else ""
+        partes = nombre.split()
+        nombre_privado = f"{partes[0]} {partes[1][0]}." if len(partes) > 1 else partes[0] if partes else ""
+        result.append({
+            "id": t.id,
+            "hora": t.hora.strftime("%H:%M") if t.hora else "",
+            "paciente_nombre": nombre_privado,
+            "medico_nombre": t.medico.nombre if t.medico else "",
+            "especialidad": t.medico.especialidad if t.medico else "",
+            "estado": t.estado.value if hasattr(t.estado, "value") else t.estado,
+        })
+    return result

@@ -28,6 +28,8 @@ class Administrador(Base):
     email = Column(String(150), unique=True, nullable=False, index=True)
     password_hash = Column(String(255), nullable=False)
     activo = Column(Boolean, default=True)
+    totp_secret = Column(String(32), nullable=True)
+    totp_enabled = Column(Boolean, default=False)
     created_at = Column(DateTime, server_default=func.now())
 
 
@@ -42,6 +44,8 @@ class Medico(Base):
     password_hash = Column(String(255), nullable=False)
     activo = Column(Boolean, default=True)
     duracion_consulta = Column(Integer, default=30)  # minutos
+    totp_secret = Column(String(32), nullable=True)
+    totp_enabled = Column(Boolean, default=False)
     created_at = Column(DateTime, server_default=func.now())
 
     turnos = relationship("Turno", back_populates="medico")
@@ -161,3 +165,29 @@ class Pago(Base):
     notas = Column(Text, default="")
     fecha_pago = Column(DateTime, server_default=func.now())
     turno = relationship("Turno", backref="pagos")
+
+
+class Archivo(Base):
+    __tablename__ = "archivos"
+    id = Column(Integer, primary_key=True, index=True)
+    nombre_original = Column(String(255), nullable=False)
+    nombre_almacenado = Column(String(255), nullable=False, unique=True)
+    tipo_mime = Column(String(100), nullable=False)
+    tamano_bytes = Column(Integer, nullable=False)
+    id_paciente = Column(Integer, ForeignKey("pacientes.id"), nullable=False)
+    descripcion = Column(String(300), default="")
+    subido_por_email = Column(String(150), nullable=False)
+    created_at = Column(DateTime, server_default=func.now())
+    paciente = relationship("Paciente", backref="archivos")
+
+
+class Notificacion(Base):
+    __tablename__ = "notificaciones"
+    id = Column(Integer, primary_key=True, index=True)
+    usuario_email = Column(String(150), nullable=False, index=True)
+    usuario_rol = Column(String(20), nullable=False)
+    titulo = Column(String(200), nullable=False)
+    mensaje = Column(Text, nullable=False)
+    leida = Column(Boolean, default=False)
+    tipo = Column(String(30), default="info")
+    created_at = Column(DateTime, server_default=func.now())

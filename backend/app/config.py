@@ -32,6 +32,9 @@ class Settings(BaseSettings):
     CLINIC_TYPE: str = "clinica"
     CLINIC_NAME: str = "MiTurno Salud PRO"
 
+    UPLOADS_DIR: str = "uploads"
+    MAX_UPLOAD_SIZE_MB: int = 10
+
     model_config = {"env_file": ".env", "extra": "ignore"}
 
 

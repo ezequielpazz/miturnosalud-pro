@@ -1,12 +1,13 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import {
   Heart, LayoutDashboard, Phone, CalendarDays, Users, UserCog, DollarSign,
   FileText, Database, CalendarClock, Calendar, User, PlusCircle, Stethoscope,
-  Menu, X, LogOut, Bell, Sun, Moon, CreditCard, Shield
+  Menu, X, LogOut, Bell, Sun, Moon, CreditCard, Shield, Paperclip, Info
 } from 'lucide-react';
+import { getNotificacionesCount, getNotificaciones, marcarLeida, marcarTodasLeidas } from '../lib/api';
 
 const navConfig = {
   admin: [
@@ -19,6 +20,7 @@ const navConfig = {
     { to: '/admin/reportes', icon: FileText, label: 'Reportes' },
     { to: '/admin/pagos', icon: CreditCard, label: 'Pagos' },
     { to: '/admin/obras-sociales', icon: Shield, label: 'Obras sociales' },
+    { to: '/admin/archivos', icon: Paperclip, label: 'Archivos' },
     { to: '/admin/backups', icon: Database, label: 'Backups' },
   ],
   medico: [
@@ -42,8 +44,46 @@ export default function Layout() {
   const { dark, toggle } = useTheme();
   const navigate = useNavigate();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [notifOpen, setNotifOpen] = useState(false);
+  const [notifCount, setNotifCount] = useState(0);
+  const [notifs, setNotifs] = useState([]);
+  const notifRef = useRef(null);
   const rol = user?.rol || 'admin';
   const items = navConfig[rol] || [];
+
+  useEffect(() => {
+    const fetchCount = () => {
+      getNotificacionesCount().then(r => setNotifCount(r.data.no_leidas)).catch(() => {});
+    };
+    fetchCount();
+    const interval = setInterval(fetchCount, 30000);
+    return () => clearInterval(interval);
+  }, []);
+
+  useEffect(() => {
+    if (notifOpen) {
+      getNotificaciones({ solo_no_leidas: false }).then(r => setNotifs(r.data?.slice(0, 10) || [])).catch(() => {});
+    }
+  }, [notifOpen]);
+
+  useEffect(() => {
+    const handleClick = (e) => {
+      if (notifRef.current && !notifRef.current.contains(e.target)) setNotifOpen(false);
+    };
+    document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
+  }, []);
+
+  const handleMarcarTodas = () => {
+    marcarTodasLeidas().then(() => { setNotifCount(0); setNotifs(n => n.map(x => ({ ...x, leida: true }))); }).catch(() => {});
+  };
+
+  const handleLeerUna = (id) => {
+    marcarLeida(id).then(() => {
+      setNotifs(n => n.map(x => x.id === id ? { ...x, leida: true } : x));
+      setNotifCount(c => Math.max(0, c - 1));
+    }).catch(() => {});
+  };
 
   const handleLogout = () => { logout(); navigate('/login'); };
 
@@ -136,9 +176,40 @@ export default function Layout() {
               <button onClick={toggle} className="w-10 h-10 bg-slate-50 dark:bg-slate-700 rounded-xl flex items-center justify-center text-slate-400 dark:text-slate-300 hover:text-slate-600 dark:hover:text-white transition-all">
                 {dark ? <Sun size={18} /> : <Moon size={18} />}
               </button>
-              <button className="relative w-10 h-10 bg-slate-50 dark:bg-slate-700 rounded-xl flex items-center justify-center text-slate-400 dark:text-slate-300 hover:text-slate-600 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-600 transition-all">
-                <Bell size={18} />
-              </button>
+              <div className="relative" ref={notifRef}>
+                <button onClick={() => setNotifOpen(!notifOpen)} className="relative w-10 h-10 bg-slate-50 dark:bg-slate-700 rounded-xl flex items-center justify-center text-slate-400 dark:text-slate-300 hover:text-slate-600 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-600 transition-all">
+                  <Bell size={18} />
+                  {notifCount > 0 && (
+                    <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center">{notifCount > 9 ? '9+' : notifCount}</span>
+                  )}
+                </button>
+                {notifOpen && (
+                  <div className="absolute right-0 top-12 w-80 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-2xl overflow-hidden z-50">
+                    <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100 dark:border-slate-700">
+                      <span className="text-sm font-bold text-slate-800 dark:text-white">Notificaciones</span>
+                      {notifCount > 0 && (
+                        <button onClick={handleMarcarTodas} className="text-xs text-blue-600 hover:text-blue-800">Marcar todas</button>
+                      )}
+                    </div>
+                    <div className="max-h-80 overflow-y-auto divide-y divide-slate-50 dark:divide-slate-700">
+                      {notifs.length === 0 ? (
+                        <p className="p-4 text-sm text-slate-400 text-center">Sin notificaciones</p>
+                      ) : notifs.map(n => (
+                        <div key={n.id} onClick={() => handleLeerUna(n.id)} className={`flex items-start gap-3 px-4 py-3 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors ${!n.leida ? 'bg-blue-50/50 dark:bg-blue-900/20' : ''}`}>
+                          <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${n.tipo === 'turno' ? 'bg-blue-100 text-blue-600' : n.tipo === 'pago' ? 'bg-green-100 text-green-600' : 'bg-slate-100 text-slate-500'}`}>
+                            {n.tipo === 'turno' ? <CalendarDays size={14} /> : n.tipo === 'pago' ? <CreditCard size={14} /> : <Info size={14} />}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium text-slate-800 dark:text-white truncate">{n.titulo}</p>
+                            <p className="text-xs text-slate-400 truncate">{n.mensaje}</p>
+                          </div>
+                          {!n.leida && <div className="w-2 h-2 bg-blue-500 rounded-full mt-2 shrink-0" />}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </header>

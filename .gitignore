@@ -45,6 +45,13 @@ Thumbs.db
 # Docker overrides
 docker-compose.override.yml
 
+# Uploads
+backend/uploads/
+
+# Tests
+backend/test.db
+.pytest_cache/
+
 # Generated files
 generar_manual.py
 Manual_MiTurnoSaludPRO.pdf
