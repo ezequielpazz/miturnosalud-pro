@@ -100,3 +100,36 @@ def toggle_medico(
     db.commit()
     estado = "activado" if medico.activo else "desactivado"
     return {"message": f"Médico {estado}", "activo": medico.activo}
+
+
+@router.put("/me/firma", tags=["medicos"])
+def guardar_firma(
+    data: dict,
+    db: Session = Depends(get_db),
+    current: tuple = Depends(get_current_user),
+):
+    """Save doctor's digital signature (base64 PNG)."""
+    user, rol = current
+    if rol != "medico":
+        raise HTTPException(status_code=403, detail="Solo médicos pueden guardar firma")
+    medico = db.query(models.Medico).filter(models.Medico.id == user.id).first()
+    if not medico:
+        raise HTTPException(status_code=404, detail="Médico no encontrado")
+    medico.firma_digital = data.get("firma")
+    db.commit()
+    return {"ok": True}
+
+
+@router.get("/me/firma", tags=["medicos"])
+def obtener_firma(
+    db: Session = Depends(get_db),
+    current: tuple = Depends(get_current_user),
+):
+    """Get doctor's digital signature."""
+    user, rol = current
+    if rol != "medico":
+        raise HTTPException(status_code=403, detail="Solo médicos pueden ver firma")
+    medico = db.query(models.Medico).filter(models.Medico.id == user.id).first()
+    if not medico:
+        raise HTTPException(status_code=404, detail="Médico no encontrado")
+    return {"firma": medico.firma_digital}

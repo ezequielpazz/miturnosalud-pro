@@ -1,10 +1,81 @@
+from datetime import date
+
 from fastapi import APIRouter, Depends, HTTPException, Query
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from app.database import get_db
 from app import models, schemas
 from app.auth import require_admin, require_admin_or_medico, get_current_user, hash_password, validate_password
 
 router = APIRouter(prefix="/api/pacientes", tags=["Pacientes"])
+
+
+@router.get("/me/exportar-datos")
+def exportar_datos_paciente(
+    db: Session = Depends(get_db),
+    current: tuple = Depends(get_current_user),
+):
+    """Export all patient data as JSON (GDPR compliance)."""
+    user, rol = current
+
+    paciente = db.query(models.Paciente).filter(models.Paciente.id == user.id).first()
+    if not paciente:
+        raise HTTPException(status_code=404, detail="Paciente no encontrado")
+
+    turnos = (
+        db.query(models.Turno)
+        .options(joinedload(models.Turno.medico))
+        .filter(models.Turno.id_paciente == paciente.id)
+        .all()
+    )
+    archivos = db.query(models.Archivo).filter(models.Archivo.id_paciente == paciente.id).all()
+    recetas = db.query(models.Receta).filter(models.Receta.id_paciente == paciente.id).all()
+
+    data = {
+        "informacion_personal": {
+            "nombre": paciente.nombre,
+            "dni": paciente.dni,
+            "email": paciente.email,
+            "telefono": paciente.telefono,
+            "fecha_nacimiento": str(paciente.fecha_nacimiento) if paciente.fecha_nacimiento else None,
+            "direccion": paciente.direccion,
+            "obra_social": paciente.obra_social.nombre if paciente.obra_social else None,
+            "numero_afiliado": paciente.numero_afiliado,
+        },
+        "turnos": [
+            {
+                "id": t.id,
+                "fecha": str(t.fecha),
+                "hora": str(t.hora),
+                "estado": t.estado.value if hasattr(t.estado, "value") else t.estado,
+                "motivo": t.motivo,
+                "nota_medica": t.nota_medica,
+                "medico_nombre": t.medico.nombre if t.medico else None,
+                "especialidad": t.medico.especialidad if t.medico else None,
+            }
+            for t in turnos
+        ],
+        "archivos": [
+            {
+                "id": a.id,
+                "nombre": a.nombre_original,
+                "descripcion": a.descripcion,
+                "fecha": str(a.created_at) if a.created_at else None,
+            }
+            for a in archivos
+        ],
+        "recetas": [
+            {
+                "id": r.id,
+                "medicamentos": r.medicamentos,
+                "indicaciones": r.indicaciones,
+                "fecha": str(r.fecha),
+            }
+            for r in recetas
+        ],
+        "fecha_exportacion": str(date.today()),
+    }
+
+    return data
 
 
 @router.get("/", response_model=list[schemas.PacienteOut])

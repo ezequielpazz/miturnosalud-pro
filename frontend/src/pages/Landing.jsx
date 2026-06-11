@@ -1,9 +1,10 @@
 import { Link } from 'react-router-dom';
 import { useTheme } from '../context/ThemeContext';
 import {
-  Heart, CalendarDays, Bell, Shield, FileText, CreditCard, Smartphone,
+  CalendarDays, Bell, Shield, FileText, CreditCard, Smartphone,
   ChevronRight, Check, Sun, Moon, Menu, X
 } from 'lucide-react';
+import Logo from '../components/Logo';
 import { useState } from 'react';
 
 const features = [
@@ -47,9 +48,7 @@ export default function Landing() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center gap-2">
-              <div className="w-9 h-9 bg-gradient-to-br from-blue-600 to-indigo-500 rounded-xl flex items-center justify-center">
-                <Heart size={18} className="text-white" />
-              </div>
+              <Logo size={36} />
               <span className="font-bold text-lg text-slate-900 dark:text-white">MiTurno Salud PRO</span>
             </div>
 

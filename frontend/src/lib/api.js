@@ -40,6 +40,8 @@ export const login = (data) => api.post('/auth/login', data);
 export const getMe = () => api.get('/auth/me');
 export const cambiarPassword = (data) => api.put('/auth/cambiar-password', data);
 export const refreshToken = (data) => api.post('/auth/refresh', data);
+export const forgotPassword = (email) => api.post('/auth/forgot-password', { email });
+export const resetPassword = (token, new_password) => api.post('/auth/reset-password', { token, new_password });
 
 // Médicos
 export const getMedicos = (params) => api.get('/medicos/', { params });
@@ -56,6 +58,7 @@ export const createPaciente = (data) => api.post('/pacientes/', data);
 export const updatePaciente = (id, data) => api.put(`/pacientes/${id}`, data);
 export const togglePaciente = (id) => api.patch(`/pacientes/${id}/toggle`);
 export const getPacientesPorMedico = (medicoId) => api.get(`/pacientes/medico/${medicoId}`);
+export const exportarDatosPaciente = () => api.get('/pacientes/me/exportar-datos');
 
 // Turnos
 export const getTurnos = (params) => api.get('/turnos/', { params });
@@ -64,6 +67,15 @@ export const createTurno = (data) => api.post('/turnos/', data);
 export const createTurnoRecepcion = (data) => api.post('/turnos/recepcion', data);
 export const updateTurno = (id, data) => api.put(`/turnos/${id}`, data);
 export const getDisponibilidad = (params) => api.get('/turnos/disponibilidad', { params });
+export const duplicarTurno = (turno) => api.post('/turnos/', {
+  id_paciente: turno.id_paciente,
+  id_medico: turno.id_medico,
+  fecha: turno.fecha,
+  hora: turno.hora,
+  motivo: turno.motivo,
+  telefono_paciente: turno.telefono_paciente,
+  creado_por: 'duplicado',
+});
 
 // Tarifas
 export const getTarifas = () => api.get('/tarifas/');
@@ -72,6 +84,19 @@ export const updateTarifa = (esp, data) => api.put(`/tarifas/${esp}`, data);
 // Reportes
 export const getDashboard = (params) => api.get('/reportes/dashboard', { params });
 export const getReportePorEspecialidad = (params) => api.get('/reportes/por-especialidad', { params });
+export const getTurnosPorMes = () => api.get('/reportes/turnos-por-mes');
+export const getIngresosSemanales = () => api.get('/reportes/ingresos-semanales');
+export const exportarExcel = (params) =>
+  api.get('/reportes/exportar-excel', { params, responseType: 'blob' }).then(res => {
+    const disposition = res.headers['content-disposition'];
+    const filename = disposition ? disposition.split('filename=')[1]?.replace(/"/g, '') : 'reporte_turnos.xlsx';
+    const url = window.URL.createObjectURL(new Blob([res.data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }));
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    a.click();
+    window.URL.revokeObjectURL(url);
+  });
 
 // Backups
 export const getBackups = () => api.get('/backups/');
@@ -89,6 +114,7 @@ export const getEspecialidadesPublico = () => publicApi.get('/publico/especialid
 export const getMedicosPublico = (especialidad) => publicApi.get('/publico/medicos', { params: { especialidad } });
 export const getDisponibilidadPublico = (params) => publicApi.get('/publico/disponibilidad', { params });
 export const reservarTurnoPublico = (data) => publicApi.post('/publico/reservar', data);
+export const registroPaciente = (data) => publicApi.post('/publico/registro', data);
 
 // Obras sociales
 export const getObrasSociales = (params) => api.get('/obras-sociales/', { params });
@@ -118,6 +144,10 @@ export const getNotificaciones = (params) => api.get('/notificaciones/', { param
 export const getNotificacionesCount = () => api.get('/notificaciones/count');
 export const marcarLeida = (id) => api.put(`/notificaciones/${id}/leer`);
 export const marcarTodasLeidas = () => api.put('/notificaciones/leer-todas');
+export const enviarRecordatorios = () => api.post('/notificaciones/enviar-recordatorios');
+
+// Historial clínico
+export const getHistorialPaciente = (pacienteId) => api.get(`/historial/paciente/${pacienteId}`);
 
 // Archivos
 export const getArchivos = (pacienteId) => api.get(`/archivos/paciente/${pacienteId}`);
@@ -139,7 +169,32 @@ export const verify2FA = (code) => api.post('/auth/2fa/verify', { code });
 export const disable2FA = () => api.post('/auth/2fa/disable');
 export const login2FA = (data) => api.post('/auth/2fa/login', data);
 
+// Recetas
+export const getRecetas = (params) => api.get('/recetas/', { params });
+export const createReceta = (data) => api.post('/recetas/', data);
+export const downloadRecetaPDF = (recetaId) =>
+  api.get(`/recetas/${recetaId}/pdf`, { responseType: 'blob' }).then(res => {
+    const url = window.URL.createObjectURL(new Blob([res.data], { type: 'application/pdf' }));
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `receta_${recetaId}.pdf`;
+    a.click();
+    window.URL.revokeObjectURL(url);
+  });
+
+// Firma digital
+export const guardarFirma = (firma) => api.put('/medicos/me/firma', { firma });
+export const obtenerFirma = () => api.get('/medicos/me/firma');
+
+// Busqueda global
+export const busquedaGlobal = (q) => api.get('/busqueda/', { params: { q } });
+
 // Sala de espera (público)
 export const getTurnosHoyPublico = () => publicApi.get('/publico/turnos-hoy');
+
+// Horarios médico
+export const getMisHorarios = () => api.get('/horarios/mis-horarios');
+export const getHorariosMedico = (medicoId) => api.get(`/horarios/medico/${medicoId}`);
+export const saveHorariosBulk = (data) => api.post('/horarios/bulk', data);
 
 export default api;

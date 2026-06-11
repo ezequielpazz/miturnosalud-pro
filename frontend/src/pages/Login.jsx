@@ -1,7 +1,8 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Heart, Shield, Stethoscope, User, Mail, Lock } from 'lucide-react';
+import { Shield, Stethoscope, User, Mail, Lock } from 'lucide-react';
+import Logo from '../components/Logo';
 
 const roles = [
   { id: 'admin', label: 'Admin', icon: Shield },
@@ -41,7 +42,7 @@ export default function Login() {
         </div>
         <div className="relative z-10 text-center text-white p-12 max-w-lg">
           <div className="w-24 h-24 bg-white/20 rounded-3xl flex items-center justify-center mx-auto mb-8">
-            <Heart size={48} />
+            <Logo size={64} />
           </div>
           <h1 className="text-4xl font-extrabold mb-4">MiTurno Salud</h1>
           <p className="text-xl font-light text-white/80 mb-8">Sistema integral de gestion clinica</p>
@@ -58,8 +59,8 @@ export default function Login() {
       <div className="w-full lg:w-1/2 flex items-center justify-center p-8">
         <div className="w-full max-w-md">
           <div className="lg:hidden text-center mb-8">
-            <div className="w-16 h-16 bg-gradient-to-br from-primary-600 to-indigo-500 rounded-2xl flex items-center justify-center mx-auto mb-4">
-              <Heart size={32} className="text-white" />
+            <div className="flex items-center justify-center mx-auto mb-4">
+              <Logo size={64} />
             </div>
             <h1 className="text-2xl font-extrabold text-slate-900">MiTurno Salud</h1>
           </div>
@@ -134,6 +135,21 @@ export default function Login() {
               {loading ? 'Ingresando...' : 'Iniciar sesion'}
             </button>
           </form>
+
+          <div className="mt-4 text-center space-y-2">
+            <Link
+              to="/forgot-password"
+              className="block text-sm text-primary-600 hover:text-primary-700 font-medium"
+            >
+              Olvidaste tu contrasena?
+            </Link>
+            <Link
+              to="/registro"
+              className="block text-sm text-slate-500 hover:text-primary-600 font-medium"
+            >
+              No tenes cuenta? Registrate
+            </Link>
+          </div>
 
           <p className="text-center text-slate-400 text-xs mt-8">
             &copy; 2026 MiTurno Salud PRO

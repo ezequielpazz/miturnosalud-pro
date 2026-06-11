@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MiTurno Salud PRO - Diagrama de Flujo del Sistema</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  @media print {
+    body { background: #fff !important; }
+    .flow-section { break-inside: avoid; }
+  }
+
+  body {
+    font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+    background: #f0f2f5;
+    color: #333;
+  }
+
+  /* ── Header ── */
+  .page-header {
+    background: linear-gradient(135deg, #1a2542 0%, #2a3f6e 100%);
+    color: #fff;
+    padding: 28px 48px;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    box-shadow: 0 4px 20px rgba(0,0,0,.25);
+  }
+  .logo-icon {
+    width: 52px; height: 52px;
+    background: #1a73f5;
+    border-radius: 14px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 26px; font-weight: 700; color: #fff;
+    box-shadow: 0 2px 10px rgba(26,115,245,.4);
+    flex-shrink: 0;
+  }
+  .header-text h1 { font-size: 26px; font-weight: 700; letter-spacing: -.3px; }
+  .header-text p  { font-size: 14px; opacity: .78; margin-top: 3px; }
+
+  /* ── Flow sections container ── */
+  .sections-wrapper {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 32px 24px 48px;
+    display: flex;
+    flex-direction: column;
+    gap: 36px;
+  }
+
+  .flow-section {
+    background: #fff;
+    border-radius: 14px;
+    box-shadow: 0 2px 16px rgba(0,0,0,.07);
+    overflow: hidden;
+  }
+
+  .section-header {
+    padding: 16px 28px;
+    font-size: 18px;
+    font-weight: 700;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .section-header .badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    background: rgba(255,255,255,.2);
+    font-size: 16px;
+    font-weight: 800;
+  }
+
+  .section-body {
+    padding: 28px 20px;
+    overflow-x: auto;
+  }
+
+  /* Section colours */
+  .flow-public .section-header  { background: linear-gradient(135deg, #1a73f5, #1557b0); }
+  .flow-admin  .section-header  { background: linear-gradient(135deg, #1a2542, #2a3f6e); }
+  .flow-doctor .section-header  { background: linear-gradient(135deg, #16a34a, #15803d); }
+  .flow-patient .section-header { background: linear-gradient(135deg, #9333ea, #7e22ce); }
+
+  /* ── SVG flowchart styles ── */
+  svg.flowchart { display: block; margin: 0 auto; }
+
+  /* Shapes */
+  .node-rect       { rx: 6; fill: #f1f5f9; stroke: #64748b; stroke-width: 1.5; }
+  .node-decision   { fill: #fffbeb; stroke: #d97706; stroke-width: 1.8; }
+  .node-io         { fill: #eff6ff; stroke: #1a73f5; stroke-width: 1.5; }
+  .node-start      { rx: 20; fill: #16a34a; stroke: #15803d; stroke-width: 2; }
+  .node-end        { rx: 20; fill: #dc2626; stroke: #b91c1c; stroke-width: 2; }
+  .node-success    { rx: 20; fill: #16a34a; stroke: #15803d; stroke-width: 2; }
+  .node-process    { rx: 6; fill: #f1f5f9; stroke: #475569; stroke-width: 1.5; }
+  .node-subprocess { rx: 6; fill: #e0e7ff; stroke: #4f46e5; stroke-width: 1.5; }
+
+  .node-label {
+    font-family: system-ui, sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    fill: #1e293b;
+    text-anchor: middle;
+    dominant-baseline: central;
+  }
+  .node-label-light {
+    font-family: system-ui, sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    fill: #fff;
+    text-anchor: middle;
+    dominant-baseline: central;
+  }
+  .label-small {
+    font-family: system-ui, sans-serif;
+    font-size: 10px;
+    font-weight: 600;
+    text-anchor: middle;
+    dominant-baseline: central;
+  }
+  .label-yes { fill: #16a34a; }
+  .label-no  { fill: #dc2626; }
+
+  .arrow {
+    fill: none;
+    stroke: #94a3b8;
+    stroke-width: 1.8;
+    marker-end: url(#arrowHead);
+  }
+  .arrow-yes {
+    fill: none;
+    stroke: #16a34a;
+    stroke-width: 1.8;
+    marker-end: url(#arrowGreen);
+  }
+  .arrow-no {
+    fill: none;
+    stroke: #dc2626;
+    stroke-width: 1.8;
+    marker-end: url(#arrowRed);
+  }
+
+  .watermark {
+    text-align: center;
+    padding: 18px;
+    color: #aab;
+    font-size: 12px;
+  }
+</style>
+</head>
+<body>
+
+<!-- ══════════ Header ══════════ -->
+<div class="page-header">
+  <div class="logo-icon">M</div>
+  <div class="header-text">
+    <h1>MiTurno Salud PRO</h1>
+    <p>Diagrama de Flujo del Sistema &mdash; Flujos completos por rol de usuario</p>
+  </div>
+</div>
+
+<!-- ══════════ Shared SVG defs ══════════ -->
+<svg width="0" height="0" style="position:absolute">
+  <defs>
+    <marker id="arrowHead" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto">
+      <path d="M0,0 L10,4 L0,8 Z" fill="#94a3b8"/>
+    </marker>
+    <marker id="arrowGreen" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto">
+      <path d="M0,0 L10,4 L0,8 Z" fill="#16a34a"/>
+    </marker>
+    <marker id="arrowRed" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto">
+      <path d="M0,0 L10,4 L0,8 Z" fill="#dc2626"/>
+    </marker>
+  </defs>
+</svg>
+
+<div class="sections-wrapper">
+
+<!-- ════════════════════════════════════════════
+     SECTION 1 – PUBLIC PORTAL FLOW
+     ════════════════════════════════════════════ -->
+<div class="flow-section flow-public">
+  <div class="section-header">
+    <span class="badge">1</span>
+    Flujo del Portal Publico &mdash; Reserva de turnos sin registro
+  </div>
+  <div class="section-body">
+    <svg class="flowchart" width="1320" height="200" viewBox="0 0 1320 200">
+
+      <!-- Start -->
+      <rect class="node-start" x="10" y="70" width="120" height="44"/>
+      <text class="node-label-light" x="70" y="92">Visitante</text>
+
+      <!-- Arrow -->
+      <line class="arrow" x1="130" y1="92" x2="168" y2="92"/>
+
+      <!-- Process: Select specialty -->
+      <rect class="node-process" x="170" y="66" width="140" height="52"/>
+      <text class="node-label" x="240" y="85">Seleccionar</text>
+      <text class="node-label" x="240" y="100">especialidad</text>
+
+      <line class="arrow" x1="310" y1="92" x2="348" y2="92"/>
+
+      <!-- Process: Select doctor -->
+      <rect class="node-process" x="350" y="66" width="130" height="52"/>
+      <text class="node-label" x="415" y="85">Seleccionar</text>
+      <text class="node-label" x="415" y="100">medico</text>
+
+      <line class="arrow" x1="480" y1="92" x2="518" y2="92"/>
+
+      <!-- Process: Pick date/time -->
+      <rect class="node-process" x="520" y="66" width="130" height="52"/>
+      <text class="node-label" x="585" y="85">Elegir fecha</text>
+      <text class="node-label" x="585" y="100">y horario</text>
+
+      <line class="arrow" x1="650" y1="92" x2="688" y2="92"/>
+
+      <!-- I/O: Enter data (parallelogram via polygon) -->
+      <polygon class="node-io" points="690,66 830,66 810,118 670,118"/>
+      <text class="node-label" x="750" y="85">Ingresar datos</text>
+      <text class="node-label" x="750" y="100">del paciente</text>
+
+      <line class="arrow" x1="830" y1="92" x2="868" y2="92"/>
+
+      <!-- Decision: Data valid? -->
+      <polygon class="node-decision" points="930,52 990,92 930,132 870,92"/>
+      <text class="node-label" x="930" y="89">Datos</text>
+      <text class="node-label" x="930" y="102">validos?</text>
+
+      <!-- Yes arrow right -->
+      <line class="arrow-yes" x1="990" y1="92" x2="1028" y2="92"/>
+      <text class="label-small label-yes" x="1009" y="84">Si</text>
+
+      <!-- No arrow down and back -->
+      <line class="arrow-no" x1="930" y1="132" x2="930" y2="166"/>
+      <text class="label-small label-no" x="942" y="152">No</text>
+      <path class="arrow-no" d="M930,166 L750,166 L750,120" style="marker-end:url(#arrowRed)"/>
+      <text class="label-small label-no" x="840" y="158">Corregir datos</text>
+
+      <!-- Process: Confirm -->
+      <rect class="node-process" x="1030" y="66" width="120" height="52"/>
+      <text class="node-label" x="1090" y="85">Confirmar</text>
+      <text class="node-label" x="1090" y="100">reserva</text>
+
+      <line class="arrow" x1="1150" y1="92" x2="1188" y2="92"/>
+
+      <!-- I/O: Email notification -->
+      <polygon class="node-io" points="1190,66 1310,66 1290,118 1170,118"/>
+      <text class="node-label" x="1240" y="85">Notificacion</text>
+      <text class="node-label" x="1240" y="100">por email</text>
+
+    </svg>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════
+     SECTION 2 – ADMIN FLOW
+     ════════════════════════════════════════════ -->
+<div class="flow-section flow-admin">
+  <div class="section-header">
+    <span class="badge">2</span>
+    Flujo del Administrador &mdash; Gestion integral del sistema
+  </div>
+  <div class="section-body">
+    <svg class="flowchart" width="1320" height="390" viewBox="0 0 1320 390">
+
+      <!-- Start -->
+      <rect class="node-start" x="10" y="55" width="110" height="44"/>
+      <text class="node-label-light" x="65" y="77">Inicio</text>
+
+      <line class="arrow" x1="120" y1="77" x2="148" y2="77"/>
+
+      <!-- I/O: Login -->
+      <polygon class="node-io" points="150,55 270,55 250,99 130,99"/>
+      <text class="node-label" x="200" y="77">Login Admin</text>
+
+      <line class="arrow" x1="270" y1="77" x2="308" y2="77"/>
+
+      <!-- Decision: Auth OK? -->
+      <polygon class="node-decision" points="370,37 430,77 370,117 310,77"/>
+      <text class="node-label" x="370" y="73">Auth</text>
+      <text class="node-label" x="370" y="86">OK?</text>
+
+      <!-- No: back -->
+      <line class="arrow-no" x1="370" y1="117" x2="370" y2="150"/>
+      <text class="label-small label-no" x="382" y="137">No</text>
+      <path class="arrow-no" d="M370,150 L200,150 L200,101" style="marker-end:url(#arrowRed)"/>
+      <text class="label-small label-no" x="285" y="143">Reintentar</text>
+
+      <!-- Decision: TOTP? -->
+      <line class="arrow-yes" x1="430" y1="77" x2="468" y2="77"/>
+      <text class="label-small label-yes" x="449" y="69">Si</text>
+
+      <polygon class="node-decision" points="530,37 590,77 530,117 470,77"/>
+      <text class="node-label" x="530" y="73">TOTP</text>
+      <text class="node-label" x="530" y="86">2FA?</text>
+
+      <!-- TOTP Yes: verify -->
+      <line class="arrow-yes" x1="530" y1="117" x2="530" y2="150"/>
+      <text class="label-small label-yes" x="542" y="137">Si</text>
+      <rect class="node-process" x="470" y="152" width="120" height="40"/>
+      <text class="node-label" x="530" y="172">Verificar TOTP</text>
+      <path class="arrow-yes" d="M590,172 L640,172 L640,99" style="marker-end:url(#arrowGreen)"/>
+
+      <!-- TOTP No: straight to dashboard -->
+      <line class="arrow" x1="590" y1="77" x2="630" y2="77"/>
+      <text class="label-small" x="610" y="69" style="fill:#64748b">No</text>
+
+      <!-- Dashboard -->
+      <rect class="node-subprocess" x="632" y="55" width="140" height="44"/>
+      <text class="node-label" x="702" y="77">Dashboard</text>
+
+      <!-- Branch out from dashboard (multiple paths) -->
+      <!-- Path A: Manage doctors/patients -->
+      <line class="arrow" x1="702" y1="99" x2="702" y2="145"/>
+
+      <!-- Horizontal decision bar -->
+      <rect class="node-process" x="80" y="230" width="150" height="48"/>
+      <text class="node-label" x="155" y="247">Gestionar</text>
+      <text class="node-label" x="155" y="262">medicos</text>
+
+      <rect class="node-process" x="260" y="230" width="150" height="48"/>
+      <text class="node-label" x="335" y="247">Gestionar</text>
+      <text class="node-label" x="335" y="262">pacientes</text>
+
+      <rect class="node-process" x="440" y="230" width="150" height="48"/>
+      <text class="node-label" x="515" y="247">Gestionar</text>
+      <text class="node-label" x="515" y="262">turnos</text>
+
+      <rect class="node-process" x="620" y="230" width="150" height="48"/>
+      <text class="node-label" x="695" y="247">Gestionar</text>
+      <text class="node-label" x="695" y="262">pagos</text>
+
+      <rect class="node-process" x="800" y="230" width="150" height="48"/>
+      <text class="node-label" x="875" y="247">Obras</text>
+      <text class="node-label" x="875" y="262">sociales</text>
+
+      <rect class="node-process" x="980" y="230" width="150" height="48"/>
+      <text class="node-label" x="1055" y="247">Generar</text>
+      <text class="node-label" x="1055" y="262">reportes</text>
+
+      <rect class="node-process" x="1160" y="230" width="140" height="48"/>
+      <text class="node-label" x="1230" y="247">Backup /</text>
+      <text class="node-label" x="1230" y="262">Auditoria</text>
+
+      <!-- Connecting lines from dashboard hub -->
+      <!-- Hub node -->
+      <rect class="node-subprocess" x="602" y="148" width="200" height="40" rx="20"/>
+      <text class="node-label" x="702" y="168">Seleccionar modulo</text>
+
+      <line class="arrow" x1="155" y1="210" x2="155" y2="228"/>
+      <line class="arrow" x1="335" y1="210" x2="335" y2="228"/>
+      <line class="arrow" x1="515" y1="210" x2="515" y2="228"/>
+      <line class="arrow" x1="695" y1="210" x2="695" y2="228"/>
+      <line class="arrow" x1="875" y1="210" x2="875" y2="228"/>
+      <line class="arrow" x1="1055" y1="210" x2="1055" y2="228"/>
+      <line class="arrow" x1="1230" y1="210" x2="1230" y2="228"/>
+
+      <!-- Fan-out line from hub -->
+      <line class="arrow" x1="702" y1="188" x2="702" y2="200" style="marker-end:none"/>
+      <line style="stroke:#94a3b8;stroke-width:1.8" x1="155" y1="210" x2="1230" y2="210"/>
+
+      <!-- Sub-actions row -->
+      <!-- CRUD operations -->
+      <rect class="node-process" x="80" y="305" width="150" height="40"/>
+      <text class="node-label" x="155" y="325">Alta / Baja / Editar</text>
+      <line class="arrow" x1="155" y1="278" x2="155" y2="303"/>
+
+      <rect class="node-process" x="260" y="305" width="150" height="40"/>
+      <text class="node-label" x="335" y="325">Alta / Baja / Editar</text>
+      <line class="arrow" x1="335" y1="278" x2="335" y2="303"/>
+
+      <rect class="node-process" x="440" y="305" width="150" height="40"/>
+      <text class="node-label" x="515" y="318">Crear / Cancelar /</text>
+      <text class="node-label" x="515" y="333">Reprogramar</text>
+      <line class="arrow" x1="515" y1="278" x2="515" y2="303"/>
+
+      <rect class="node-process" x="620" y="305" width="150" height="40"/>
+      <text class="node-label" x="695" y="325">Registrar cobros</text>
+      <line class="arrow" x1="695" y1="278" x2="695" y2="303"/>
+
+      <rect class="node-process" x="800" y="305" width="150" height="40"/>
+      <text class="node-label" x="875" y="325">ABM obras sociales</text>
+      <line class="arrow" x1="875" y1="278" x2="875" y2="303"/>
+
+      <!-- I/O: Export Excel -->
+      <polygon class="node-io" points="990,305 1140,305 1120,345 970,345"/>
+      <text class="node-label" x="1055" y="325">Exportar Excel</text>
+      <line class="arrow" x1="1055" y1="278" x2="1055" y2="303"/>
+
+      <rect class="node-process" x="1160" y="305" width="140" height="40"/>
+      <text class="node-label" x="1230" y="318">Descargar DB /</text>
+      <text class="node-label" x="1230" y="333">Ver logs</text>
+      <line class="arrow" x1="1230" y1="278" x2="1230" y2="303"/>
+
+    </svg>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════
+     SECTION 3 – DOCTOR FLOW
+     ════════════════════════════════════════════ -->
+<div class="flow-section flow-doctor">
+  <div class="section-header">
+    <span class="badge">3</span>
+    Flujo del Medico &mdash; Atencion y seguimiento de pacientes
+  </div>
+  <div class="section-body">
+    <svg class="flowchart" width="1320" height="340" viewBox="0 0 1320 340">
+
+      <!-- Start -->
+      <rect class="node-start" x="10" y="60" width="110" height="44"/>
+      <text class="node-label-light" x="65" y="82">Inicio</text>
+
+      <line class="arrow" x1="120" y1="82" x2="148" y2="82"/>
+
+      <!-- I/O: Login -->
+      <polygon class="node-io" points="150,60 270,60 250,104 130,104"/>
+      <text class="node-label" x="200" y="82">Login Medico</text>
+
+      <line class="arrow" x1="270" y1="82" x2="308" y2="82"/>
+
+      <!-- Decision: Auth -->
+      <polygon class="node-decision" points="370,42 430,82 370,122 310,82"/>
+      <text class="node-label" x="370" y="78">Auth</text>
+      <text class="node-label" x="370" y="91">OK?</text>
+
+      <line class="arrow-no" x1="370" y1="122" x2="370" y2="150"/>
+      <text class="label-small label-no" x="382" y="140">No</text>
+      <path class="arrow-no" d="M370,150 L200,150 L200,106" style="marker-end:url(#arrowRed)"/>
+
+      <line class="arrow-yes" x1="430" y1="82" x2="468" y2="82"/>
+      <text class="label-small label-yes" x="449" y="74">Si</text>
+
+      <!-- Dashboard -->
+      <rect class="node-subprocess" x="470" y="60" width="150" height="44"/>
+      <text class="node-label" x="545" y="75">Turnos de hoy</text>
+      <text class="node-label" x="545" y="90">(agenda diaria)</text>
+
+      <line class="arrow" x1="620" y1="82" x2="658" y2="82"/>
+
+      <!-- Decision: Patient present? -->
+      <polygon class="node-decision" points="720,42 790,82 720,122 650,82"/>
+      <text class="node-label" x="720" y="75">Paciente</text>
+      <text class="node-label" x="720" y="90">presente?</text>
+
+      <!-- No: Mark absent -->
+      <line class="arrow-no" x1="720" y1="122" x2="720" y2="165"/>
+      <text class="label-small label-no" x="734" y="146">No</text>
+      <rect class="node-end" x="660" y="167" width="120" height="40"/>
+      <text class="node-label-light" x="720" y="187">Marcar ausente</text>
+
+      <!-- Yes: continue -->
+      <line class="arrow-yes" x1="790" y1="82" x2="828" y2="82"/>
+      <text class="label-small label-yes" x="809" y="74">Si</text>
+
+      <!-- Process: Complete appointment -->
+      <rect class="node-process" x="830" y="58" width="140" height="48"/>
+      <text class="node-label" x="900" y="75">Completar turno</text>
+      <text class="node-label" x="900" y="90">(notas medicas)</text>
+
+      <line class="arrow" x1="900" y1="106" x2="900" y2="140"/>
+
+      <!-- Decision: Needs prescription? -->
+      <polygon class="node-decision" points="900,145 970,185 900,225 830,185"/>
+      <text class="node-label" x="900" y="181">Receta?</text>
+
+      <!-- Yes: Create prescription -->
+      <line class="arrow-yes" x1="970" y1="185" x2="1008" y2="185"/>
+      <text class="label-small label-yes" x="989" y="177">Si</text>
+
+      <rect class="node-process" x="1010" y="163" width="130" height="44"/>
+      <text class="node-label" x="1075" y="178">Crear receta</text>
+      <text class="node-label" x="1075" y="193">(genera PDF)</text>
+
+      <line class="arrow" x1="1140" y1="185" x2="1178" y2="185"/>
+
+      <!-- Decision: Needs follow-up? -->
+      <polygon class="node-decision" points="900,230 970,270 900,310 830,270"/>
+      <text class="node-label" x="900" y="263">Seguimi-</text>
+      <text class="node-label" x="900" y="278">ento?</text>
+
+      <line class="arrow" x1="900" y1="225" x2="900" y2="228"/>
+
+      <!-- No prescription: go to follow-up -->
+      <line class="arrow-no" x1="900" y1="225" x2="900" y2="228"/>
+      <text class="label-small label-no" x="870" y="210">No</text>
+
+      <!-- Yes follow-up -->
+      <line class="arrow-yes" x1="970" y1="270" x2="1060" y2="270"/>
+      <text class="label-small label-yes" x="1010" y="262">Si</text>
+      <rect class="node-process" x="1062" y="248" width="140" height="44"/>
+      <text class="node-label" x="1132" y="263">Marcar necesita</text>
+      <text class="node-label" x="1132" y="278">seguimiento</text>
+
+      <!-- No follow-up -->
+      <line class="arrow-no" x1="900" y1="310" x2="900" y2="326"/>
+      <text class="label-small label-no" x="870" y="320">No</text>
+
+      <!-- End -->
+      <rect class="node-success" x="840" y="326" width="120" height="36"/>
+      <text class="node-label-light" x="900" y="344">Fin consulta</text>
+
+      <!-- Follow-up also goes to end -->
+      <path class="arrow" d="M1132,292 L1132,344 L962,344" style="marker-end:url(#arrowHead)"/>
+
+      <!-- Prescription leads to follow-up check too -->
+      <rect class="node-subprocess" x="1180" y="163" width="120" height="44"/>
+      <text class="node-label" x="1240" y="178">Ver historial</text>
+      <text class="node-label" x="1240" y="193">(timeline)</text>
+
+    </svg>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════
+     SECTION 4 – PATIENT FLOW
+     ════════════════════════════════════════════ -->
+<div class="flow-section flow-patient">
+  <div class="section-header">
+    <span class="badge">4</span>
+    Flujo del Paciente &mdash; Autoservicio y consulta de informacion
+  </div>
+  <div class="section-body">
+    <svg class="flowchart" width="1320" height="310" viewBox="0 0 1320 310">
+
+      <!-- Start -->
+      <rect class="node-start" x="10" y="60" width="110" height="44"/>
+      <text class="node-label-light" x="65" y="82">Inicio</text>
+
+      <line class="arrow" x1="120" y1="82" x2="148" y2="82"/>
+
+      <!-- I/O: Login -->
+      <polygon class="node-io" points="150,60 280,60 260,104 130,104"/>
+      <text class="node-label" x="205" y="82">Login Paciente</text>
+
+      <line class="arrow" x1="280" y1="82" x2="308" y2="82"/>
+
+      <!-- Decision: Auth -->
+      <polygon class="node-decision" points="370,42 430,82 370,122 310,82"/>
+      <text class="node-label" x="370" y="78">Auth</text>
+      <text class="node-label" x="370" y="91">OK?</text>
+
+      <line class="arrow-no" x1="370" y1="122" x2="370" y2="150"/>
+      <text class="label-small label-no" x="382" y="140">No</text>
+      <path class="arrow-no" d="M370,150 L205,150 L205,106" style="marker-end:url(#arrowRed)"/>
+
+      <line class="arrow-yes" x1="430" y1="82" x2="468" y2="82"/>
+      <text class="label-small label-yes" x="449" y="74">Si</text>
+
+      <!-- Dashboard -->
+      <rect class="node-subprocess" x="470" y="58" width="160" height="48"/>
+      <text class="node-label" x="550" y="75">Panel del paciente</text>
+      <text class="node-label" x="550" y="90">(mis turnos)</text>
+
+      <!-- Hub -->
+      <line class="arrow" x1="550" y1="106" x2="550" y2="138"/>
+      <rect class="node-subprocess" x="430" y="140" width="240" height="36" rx="18"/>
+      <text class="node-label" x="550" y="158">Seleccionar accion</text>
+
+      <!-- Fan-out -->
+      <line style="stroke:#94a3b8;stroke-width:1.8" x1="170" y1="200" x2="1120" y2="200"/>
+      <line class="arrow" x1="550" y1="176" x2="550" y2="198" style="marker-end:none"/>
+
+      <!-- Branch 1: View appointments -->
+      <line class="arrow" x1="170" y1="200" x2="170" y2="220"/>
+      <rect class="node-process" x="90" y="222" width="160" height="44"/>
+      <text class="node-label" x="170" y="237">Ver mis turnos</text>
+      <text class="node-label" x="170" y="252">(proximos / pasados)</text>
+
+      <!-- Branch 2: Request appointment -->
+      <line class="arrow" x1="400" y1="200" x2="400" y2="220"/>
+      <rect class="node-process" x="320" y="222" width="160" height="44"/>
+      <text class="node-label" x="400" y="237">Solicitar</text>
+      <text class="node-label" x="400" y="252">nuevo turno</text>
+
+      <!-- Sub: select specialty, doctor, date -->
+      <line class="arrow" x1="400" y1="266" x2="400" y2="280"/>
+      <polygon class="node-io" points="320,282 480,282 460,310 300,310"/>
+      <text class="node-label" x="390" y="298">Especialidad / Medico / Fecha</text>
+
+      <!-- Branch 3: View profile -->
+      <line class="arrow" x1="630" y1="200" x2="630" y2="220"/>
+      <rect class="node-process" x="555" y="222" width="150" height="44"/>
+      <text class="node-label" x="630" y="237">Ver mi perfil</text>
+      <text class="node-label" x="630" y="252">(datos personales)</text>
+
+      <!-- Branch 4: Download prescriptions -->
+      <line class="arrow" x1="850" y1="200" x2="850" y2="220"/>
+      <rect class="node-process" x="770" y="222" width="160" height="44"/>
+      <text class="node-label" x="850" y="237">Descargar</text>
+      <text class="node-label" x="850" y="252">recetas (PDF)</text>
+
+      <!-- Branch 5: Notifications -->
+      <line class="arrow" x1="1060" y1="200" x2="1060" y2="220"/>
+      <rect class="node-process" x="980" y="222" width="160" height="44"/>
+      <text class="node-label" x="1060" y="237">Ver</text>
+      <text class="node-label" x="1060" y="252">notificaciones</text>
+
+    </svg>
+  </div>
+</div>
+
+</div><!-- /sections-wrapper -->
+
+<div class="watermark">MiTurno Salud PRO &mdash; Diagrama de flujo generado automaticamente &mdash; 4 flujos principales</div>
+
+</body>
+</html>

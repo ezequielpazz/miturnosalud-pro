@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { ThemeProvider } from './context/ThemeContext';
+import { ToastProvider } from './components/Toast';
 import Layout from './components/Layout';
 import Login from './pages/Login';
 import Perfil from './pages/Perfil';
@@ -22,6 +23,8 @@ import ObrasSociales from './pages/admin/ObrasSociales';
 import TurnosHoy from './pages/medico/TurnosHoy';
 import Agenda from './pages/medico/Agenda';
 import MisPacientes from './pages/medico/MisPacientes';
+import HistorialPaciente from './pages/medico/HistorialPaciente';
+import MiAgendaConfig from './pages/medico/MiAgendaConfig';
 
 // Paciente
 import MisTurnos from './pages/paciente/MisTurnos';
@@ -32,6 +35,9 @@ import MedicosDisponibles from './pages/paciente/MedicosDisponibles';
 import Reservar from './pages/Reservar';
 import Landing from './pages/Landing';
 import SalaEspera from './pages/SalaEspera';
+import ForgotPassword from './pages/ForgotPassword';
+import ResetPassword from './pages/ResetPassword';
+import Registro from './pages/Registro';
 import Archivos from './pages/admin/Archivos';
 
 const queryClient = new QueryClient();
@@ -71,7 +77,9 @@ function AppRoutes() {
       <Route path="/medico" element={<ProtectedRoute roles={['medico']}><Layout /></ProtectedRoute>}>
         <Route index element={<TurnosHoy />} />
         <Route path="agenda" element={<Agenda />} />
+        <Route path="agenda/config" element={<MiAgendaConfig />} />
         <Route path="pacientes" element={<MisPacientes />} />
+        <Route path="pacientes/:id/historial" element={<HistorialPaciente />} />
         <Route path="perfil" element={<Perfil />} />
       </Route>
 
@@ -87,6 +95,9 @@ function AppRoutes() {
       <Route path="/" element={<Landing />} />
       <Route path="/reservar" element={<Reservar />} />
       <Route path="/sala-de-espera" element={<SalaEspera />} />
+      <Route path="/registro" element={<Registro />} />
+      <Route path="/forgot-password" element={<ForgotPassword />} />
+      <Route path="/reset-password" element={<ResetPassword />} />
 
       <Route path="*" element={<Navigate to="/" />} />
     </Routes>
@@ -99,7 +110,9 @@ export default function App() {
       <QueryClientProvider client={queryClient}>
         <BrowserRouter>
           <AuthProvider>
-            <AppRoutes />
+            <ToastProvider>
+              <AppRoutes />
+            </ToastProvider>
           </AuthProvider>
         </BrowserRouter>
       </QueryClientProvider>

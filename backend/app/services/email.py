@@ -96,6 +96,61 @@ def enviar_confirmacion_turno(
     _send(email, "Turno confirmado", html)
 
 
+def enviar_reset_password(email: str, nombre: str, reset_url: str) -> None:
+    html = f"""
+    <!DOCTYPE html>
+    <html>
+    <body style="margin:0;padding:0;background:#f1f5f9;font-family:Arial,sans-serif;">
+      <table width="100%" cellpadding="0" cellspacing="0" style="background:#f1f5f9;padding:40px 0;">
+        <tr><td align="center">
+          <table width="560" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:12px;overflow:hidden;">
+            <tr>
+              <td style="background:#1e40af;padding:32px 40px;text-align:center;">
+                <h1 style="margin:0;color:#ffffff;font-size:24px;">MiTurno Salud PRO</h1>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:40px;">
+                <h2 style="margin:0 0 16px;color:#1e40af;font-size:20px;">Restablecer contraseña</h2>
+                <p style="margin:0 0 24px;color:#374151;font-size:15px;">
+                  Hola <strong>{nombre}</strong>, recibimos una solicitud para restablecer tu contraseña.
+                </p>
+                <p style="margin:0 0 24px;color:#374151;font-size:15px;">
+                  Hacé clic en el siguiente botón para crear una nueva contraseña:
+                </p>
+                <table width="100%" cellpadding="0" cellspacing="0">
+                  <tr>
+                    <td align="center" style="padding:16px 0;">
+                      <a href="{reset_url}"
+                         style="display:inline-block;background:#1e40af;color:#ffffff;text-decoration:none;
+                                padding:14px 32px;border-radius:8px;font-size:15px;font-weight:bold;">
+                        Restablecer contraseña
+                      </a>
+                    </td>
+                  </tr>
+                </table>
+                <p style="margin:24px 0 0;color:#6b7280;font-size:13px;">
+                  Si no solicitaste este cambio, podés ignorar este email. El enlace expira en 1 hora.
+                </p>
+                <p style="margin:16px 0 0;color:#9ca3af;font-size:12px;word-break:break-all;">
+                  {reset_url}
+                </p>
+              </td>
+            </tr>
+            <tr>
+              <td style="background:#f8fafc;padding:20px 40px;text-align:center;border-top:1px solid #e2e8f0;">
+                <p style="margin:0;color:#9ca3af;font-size:12px;">MiTurno Salud PRO &mdash; Sistema de gestión de turnos</p>
+              </td>
+            </tr>
+          </table>
+        </td></tr>
+      </table>
+    </body>
+    </html>
+    """
+    _send(email, "Restablecer contraseña - MiTurno Salud PRO", html)
+
+
 def enviar_cancelacion_turno(
     email: str,
     nombre: str,

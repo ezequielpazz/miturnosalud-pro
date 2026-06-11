@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MiTurno Salud PRO - Diagrama Entidad-Relacion</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  @media print {
+    body { background: #fff !important; }
+    .page-header { break-after: avoid; }
+    .er-canvas { break-inside: avoid; }
+  }
+
+  body {
+    font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+    background: #f0f2f5;
+    color: #333;
+    min-height: 100vh;
+  }
+
+  .page-header {
+    background: linear-gradient(135deg, #1a2542 0%, #2a3f6e 100%);
+    color: #fff;
+    padding: 28px 48px;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    box-shadow: 0 4px 20px rgba(0,0,0,.25);
+  }
+
+  .logo-icon {
+    width: 52px; height: 52px;
+    background: #1a73f5;
+    border-radius: 14px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 26px; font-weight: 700; color: #fff;
+    box-shadow: 0 2px 10px rgba(26,115,245,.4);
+    flex-shrink: 0;
+  }
+
+  .header-text h1 { font-size: 26px; font-weight: 700; letter-spacing: -.3px; }
+  .header-text p  { font-size: 14px; opacity: .78; margin-top: 3px; }
+
+  .legend-bar {
+    display: flex; gap: 28px; padding: 16px 48px;
+    background: #fff; border-bottom: 1px solid #dde1e6;
+    flex-wrap: wrap;
+  }
+  .legend-item {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 13px; font-weight: 500; color: #555;
+  }
+  .legend-swatch {
+    width: 18px; height: 18px; border-radius: 4px;
+  }
+
+  .er-canvas {
+    position: relative;
+    width: 1680px;
+    height: 1220px;
+    margin: 32px auto;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 2px 16px rgba(0,0,0,.08);
+    overflow: visible;
+  }
+
+  /* ── Entity cards ── */
+  .entity {
+    position: absolute;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,.10);
+    min-width: 200px;
+    font-size: 12.5px;
+    line-height: 1.45;
+    transition: box-shadow .2s;
+  }
+  .entity:hover { box-shadow: 0 4px 18px rgba(0,0,0,.18); z-index: 10; }
+
+  .entity-header {
+    padding: 8px 14px;
+    font-weight: 700;
+    font-size: 13.5px;
+    color: #fff;
+    letter-spacing: .3px;
+  }
+  .entity-body {
+    padding: 8px 14px;
+    background: #fff;
+  }
+  .entity-body .field { padding: 2px 0; display: flex; gap: 6px; align-items: baseline; }
+  .field .pk  { color: #d4a017; font-weight: 700; font-size: 10px; }
+  .field .fk  { color: #e74c3c; font-weight: 700; font-size: 10px; }
+  .field .name { font-weight: 600; color: #222; }
+  .field .type { color: #888; font-size: 11.5px; }
+
+  /* Domain colours */
+  .domain-auth   .entity-header { background: linear-gradient(135deg, #2563eb, #1d4ed8); }
+  .domain-auth   { border: 2px solid #2563eb; }
+
+  .domain-core   .entity-header { background: linear-gradient(135deg, #16a34a, #15803d); }
+  .domain-core   { border: 2px solid #16a34a; }
+
+  .domain-finance .entity-header { background: linear-gradient(135deg, #d97706, #b45309); }
+  .domain-finance { border: 2px solid #d97706; }
+
+  .domain-support .entity-header { background: linear-gradient(135deg, #9333ea, #7e22ce); }
+  .domain-support { border: 2px solid #9333ea; }
+
+  /* ── SVG relationship lines ── */
+  .rel-svg {
+    position: absolute; top: 0; left: 0;
+    width: 100%; height: 100%;
+    pointer-events: none;
+    z-index: 0;
+  }
+  .rel-line {
+    fill: none;
+    stroke: #94a3b8;
+    stroke-width: 2;
+  }
+  .rel-label {
+    font-family: system-ui, sans-serif;
+    font-size: 11px;
+    font-weight: 600;
+    fill: #64748b;
+  }
+  .rel-label-bg {
+    fill: #fff;
+    rx: 3;
+  }
+
+  /* Crow-foot markers */
+  .crow-many { fill: none; stroke: #94a3b8; stroke-width: 2; }
+  .crow-one  { fill: none; stroke: #94a3b8; stroke-width: 2; }
+
+  .watermark {
+    text-align: center;
+    padding: 18px;
+    color: #aab;
+    font-size: 12px;
+  }
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<div class="page-header">
+  <div class="logo-icon">M</div>
+  <div class="header-text">
+    <h1>MiTurno Salud PRO</h1>
+    <p>Diagrama Entidad-Relacion &mdash; Modelo de datos completo</p>
+  </div>
+</div>
+
+<!-- Legend -->
+<div class="legend-bar">
+  <div class="legend-item"><div class="legend-swatch" style="background:#2563eb"></div> Autenticacion / Seguridad</div>
+  <div class="legend-item"><div class="legend-swatch" style="background:#16a34a"></div> Dominio Principal (Core)</div>
+  <div class="legend-item"><div class="legend-swatch" style="background:#d97706"></div> Financiero</div>
+  <div class="legend-item"><div class="legend-swatch" style="background:#9333ea"></div> Soporte / Auxiliar</div>
+  <div class="legend-item" style="margin-left:auto;">
+    <span style="color:#d4a017;font-weight:700;font-size:11px">PK</span> Clave primaria &nbsp;
+    <span style="color:#e74c3c;font-weight:700;font-size:11px">FK</span> Clave foranea &nbsp;
+    <span style="font-size:18px;line-height:1">&#8594;</span> 1:N &nbsp;
+    <span style="font-size:18px;line-height:1">&#8596;</span> Relacion
+  </div>
+</div>
+
+<!-- ER Canvas -->
+<div class="er-canvas" id="canvas">
+
+<!-- ═══════════════════════════════════════════
+     SVG LAYER – relationship lines
+     ═══════════════════════════════════════════ -->
+<svg class="rel-svg" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- Arrowhead marker -->
+    <marker id="arrow" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto">
+      <path d="M0,0 L10,4 L0,8 Z" fill="#94a3b8"/>
+    </marker>
+    <!-- Crow-foot "many" marker -->
+    <marker id="crowMany" markerWidth="14" markerHeight="12" refX="13" refY="6" orient="auto">
+      <line x1="0" y1="0" x2="13" y2="6" class="crow-many"/>
+      <line x1="0" y1="12" x2="13" y2="6" class="crow-many"/>
+      <line x1="0" y1="6" x2="13" y2="6" class="crow-many"/>
+    </marker>
+    <!-- "One" marker -->
+    <marker id="crowOne" markerWidth="10" markerHeight="14" refX="9" refY="7" orient="auto">
+      <line x1="7" y1="1" x2="7" y2="13" class="crow-one"/>
+      <line x1="2" y1="1" x2="2" y2="13" class="crow-one"/>
+    </marker>
+  </defs>
+
+  <!-- Medico 1──N Turno -->
+  <path d="M 460,250 C 540,250 560,340 640,340" class="rel-line" marker-start="url(#crowOne)" marker-end="url(#crowMany)"/>
+  <rect class="rel-label-bg" x="510" y="272" width="42" height="18"/>
+  <text class="rel-label" x="531" y="286" text-anchor="middle">1 : N</text>
+
+  <!-- Paciente 1──N Turno -->
+  <path d="M 460,540 C 560,540 560,400 640,400" class="rel-line" marker-start="url(#crowOne)" marker-end="url(#crowMany)"/>
+  <rect class="rel-label-bg" x="515" y="452" width="42" height="18"/>
+  <text class="rel-label" x="536" y="466" text-anchor="middle">1 : N</text>
+
+  <!-- Turno 1──N Pago -->
+  <path d="M 860,400 C 940,400 960,310 1040,310" class="rel-line" marker-start="url(#crowOne)" marker-end="url(#crowMany)"/>
+  <rect class="rel-label-bg" x="920" y="332" width="42" height="18"/>
+  <text class="rel-label" x="941" y="346" text-anchor="middle">1 : N</text>
+
+  <!-- Turno 1──N Receta -->
+  <path d="M 860,440 C 950,440 960,550 1040,550" class="rel-line" marker-start="url(#crowOne)" marker-end="url(#crowMany)"/>
+  <rect class="rel-label-bg" x="920" y="478" width="42" height="18"/>
+  <text class="rel-label" x="941" y="492" text-anchor="middle">1 : N</text>
+
+  <!-- Medico 1──N Receta -->
+  <path d="M 330,310 C 330,680 950,680 1040,600" class="rel-line" marker-start="url(#crowOne)" marker-end="url(#crowMany)"/>
+  <rect class="rel-label-bg" x="630" y="674" width="42" height="18"/>
+  <text class="rel-label" x="651" y="688" text-anchor="middle">1 : N</text>
+
+  <!-- Paciente 1──N Receta -->
+  <path d="M 460,600 C 700,640 950,640 1040,580" class="rel-line" marker-start="url(#crowOne)" marker-end="url(#crowMany)"/>
+  <rect class="rel-label-bg" x="730" y="630" width="42" height="18"/>
+  <text class="rel-label" x="751" y="644" text-anchor="middle">1 : N</text>
+
+  <!-- Paciente 1──N Archivo -->
+  <path d="M 260,680 C 260,780 460,780 460,830" class="rel-line" marker-start="url(#crowOne)" marker-end="url(#crowMany)"/>
+  <rect class="rel-label-bg" x="334" y="784" width="42" height="18"/>
+  <text class="rel-label" x="355" y="798" text-anchor="middle">1 : N</text>
+
+  <!-- Paciente 1──N Mascota -->
+  <path d="M 200,680 C 200,790 80,790 80,840" class="rel-line" marker-start="url(#crowOne)" marker-end="url(#crowMany)"/>
+  <rect class="rel-label-bg" x="115" y="784" width="42" height="18"/>
+  <text class="rel-label" x="136" y="798" text-anchor="middle">1 : N</text>
+
+  <!-- ObraSocial 1──N Paciente -->
+  <path d="M 260,140 L 260,410" class="rel-line" marker-start="url(#crowOne)" marker-end="url(#crowMany)"/>
+  <rect class="rel-label-bg" x="268" y="280" width="42" height="18"/>
+  <text class="rel-label" x="289" y="294" text-anchor="middle">1 : N</text>
+
+  <!-- Tarifa (standalone – linked by especialidad field, no FK) -->
+  <line x1="1160" y1="200" x2="1160" y2="164" class="rel-line" stroke-dasharray="6,4"/>
+  <rect class="rel-label-bg" x="1120" y="155" width="82" height="18"/>
+  <text class="rel-label" x="1161" y="168" text-anchor="middle">especialidad</text>
+
+</svg>
+
+<!-- ═══════════════════════════════════════════
+     ENTITY CARDS
+     ═══════════════════════════════════════════ -->
+
+<!-- ── AUTH DOMAIN ── -->
+
+<!-- Administrador -->
+<div class="entity domain-auth" style="left:40px; top:40px; width:205px;">
+  <div class="entity-header">Administrador</div>
+  <div class="entity-body">
+    <div class="field"><span class="pk">PK</span> <span class="name">id</span> <span class="type">Integer</span></div>
+    <div class="field"><span class="name">nombre</span> <span class="type">String</span></div>
+    <div class="field"><span class="name">email</span> <span class="type">String (unique)</span></div>
+    <div class="field"><span class="name">password_hash</span> <span class="type">String</span></div>
+    <div class="field"><span class="name">activo</span> <span class="type">Boolean</span></div>
+    <div class="field"><span class="name">totp_secret</span> <span class="type">String</span></div>
+    <div class="field"><span class="name">totp_enabled</span> <span class="type">Boolean</span></div>
+  </div>
+</div>
+
+<!-- RefreshToken -->
+<div class="entity domain-auth" style="left:1370px; top:40px; width:260px;">
+  <div class="entity-header">RefreshToken</div>
+  <div class="entity-body">
+    <div class="field"><span class="pk">PK</span> <span class="name">id</span> <span class="type">Integer</span></div>
+    <div class="field"><span class="name">token</span> <span class="type">String (unique)</span></div>
+    <div class="field"><span class="name">user_email</span> <span class="type">String</span></div>
+    <div class="field"><span class="name">user_rol</span> <span class="type">String</span></div>
+    <div class="field"><span class="name">expires_at</span> <span class="type">DateTime</span></div>
+    <div class="field"><span class="name">revoked</span> <span class="type">Boolean</span></div>
+  </div>
+</div>
+
+<!-- PasswordResetToken -->
+<div class="entity domain-auth" style="left:1370px; top:260px; width:260px;">
+  <div class="entity-header">PasswordResetToken</div>
+  <div class="entity-body">
+    <div class="field"><span class="pk">PK</span> <span class="name">id</span> <span class="type">Integer</span></div>
+    <div class="field"><span class="name">email</span> <span class="type">String</span></div>
+    <div class="field"><span class="name">token</span> <span class="type">String (unique)</span></div>
+    <div class="field"><span class="name">expires_at</span> <span class="type">DateTime</span></div>
+    <div class="field"><span class="name">used</span> <span class="type">Boolean</span></div>
+  </div>
+</div>
+
+<!-- AuditLog -->
+<div class="entity domain-auth" style="left:1370px; top:460px; width:260px;">
+  <div class="entity-header">AuditLog</div>
+  <div class="entity-body">
+    <div class="field"><span class="pk">PK</span> <span class="name">id</span> <span class="type">Integer</span></div>
+    <div class="field"><span class="name">usuario_email</span> <span class="type">String</span></div>
+    <div class="field"><span class="name">usuario_rol</span> <span class="type">String</span></div>
+    <div class="field"><span class="name">accion</span> <span class="type">String</span></div>
+    <div class="field"><span class="name">detalle</span> <span class="type">Text</span></div>
+    <div class="field"><span class="name">created_at</span> <span class="type">DateTime</span></div>
+  </div>
+</div>
+
+<!-- ── CORE DOMAIN ── -->
+
+<!-- ObraSocial -->
+<div class="entity domain-core" style="left:155px; top:40px; width:210px;">
+  <div class="entity-header">ObraSocial</div>
+  <div class="entity-body">
+    <div class="field"><span class="pk">PK</span> <span class="name">id</span> <span class="type">Integer</span></div>
+    <div class="field"><span class="name">nombre</span> <span class="type">String</span></div>
+    <div class="field"><span class="name">codigo</span> <span class="type">String</span></div>
+    <div class="field"><span class="name">activo</span> <span class="type">Boolean</span></div>
+  </div>
+</div>
+
+<!-- Medico -->
+<div class="entity domain-core" style="left:140px; top:200px; width:320px;">
+  <div class="entity-header">Medico</div>
+  <div class="entity-body">
+    <div class="field"><span class="pk">PK</span> <span class="name">id</span> <span class="type">Integer</span></div>
+    <div class="field"><span class="name">nombre</span> <span class="type">String</span></div>
+    <div class="field"><span class="name">email</span> <span class="type">String (unique)</span></div>
+    <div class="field"><span class="name">telefono</span> <span class="type">String</span></div>
+    <div class="field"><span class="name">especialidad</span> <span class="type">String</span></div>
+    <div class="field"><span class="name">password_hash</span> <span class="type">String</span></div>
+    <div class="field"><span class="name">activo</span> <span class="type">Boolean</span></div>
+    <div class="field"><span class="name">duracion_consulta</span> <span class="type">Integer</span></div>
+    <div class="field"><span class="name">totp_secret</span> <span class="type">String</span></div>
+    <div class="field"><span class="name">totp_enabled</span> <span class="type">Boolean</span></div>
+  </div>
+</div>
+
+<!-- Paciente -->
+<div class="entity domain-core" style="left:100px; top:480px; width:360px;">
+  <div class="entity-header">Paciente</div>
+  <div class="entity-body">
+    <div class="field"><span class="pk">PK</span> <span class="name">id</span> <span class="type">Integer</span></div>
+    <div class="field"><span class="name">nombre</span> <span class="type">String</span></div>
+    <div class="field"><span class="name">dni</span> <span class="type">String (unique)</span></div>
+    <div class="field"><span class="name">email</span> <span class="type">String</span></div>
+    <div class="field"><span class="name">telefono</span> <span class="type">String</span></div>
+    <div class="field"><span class="name">fecha_nacimiento</span> <span class="type">Date</span></div>
+    <div class="field"><span class="name">direccion</span> <span class="type">String</span></div>
+    <div class="field"><span class="name">notas_clinicas</span> <span class="type">Text</span></div>
+    <div class="field"><span class="name">password_hash</span> <span class="type">String</span></div>
+    <div class="field"><span class="name">activo</span> <span class="type">Boolean</span></div>
+    <div class="field"><span class="name">requiere_turno</span> <span class="type">Boolean</span></div>
+    <div class="field"><span class="fk">FK</span> <span class="name">obra_social_id</span> <span class="type">&#8594; ObraSocial</span></div>
+    <div class="field"><span class="name">numero_afiliado</span> <span class="type">String</span></div>
+  </div>
+</div>
+
+<!-- Turno (CENTRE) -->
+<div class="entity domain-core" style="left:580px; top:300px; width:310px;">
+  <div class="entity-header">Turno</div>
+  <div class="entity-body">
+    <div class="field"><span class="pk">PK</span> <span class="name">id</span> <span class="type">Integer</span></div>
+    <div class="field"><span class="fk">FK</span> <span class="name">id_paciente</span> <span class="type">&#8594; Paciente</span></div>
+    <div class="field"><span class="fk">FK</span> <span class="name">id_medico</span> <span class="type">&#8594; Medico</span></div>
+    <div class="field"><span class="name">fecha</span> <span class="type">Date</span></div>
+    <div class="field"><span class="name">hora</span> <span class="type">Time</span></div>
+    <div class="field"><span class="name">estado</span> <span class="type">Enum [prog/comp/canc/aus]</span></div>
+    <div class="field"><span class="name">motivo</span> <span class="type">Text</span></div>
+    <div class="field"><span class="name">telefono_paciente</span> <span class="type">String</span></div>
+    <div class="field"><span class="name">nota_medica</span> <span class="type">Text</span></div>
+    <div class="field"><span class="name">necesita_seguimiento</span> <span class="type">Boolean</span></div>
+    <div class="field"><span class="name">creado_por</span> <span class="type">String</span></div>
+    <div class="field"><span class="name">fecha_creacion</span> <span class="type">DateTime</span></div>
+  </div>
+</div>
+
+<!-- ── FINANCIAL DOMAIN ── -->
+
+<!-- Pago -->
+<div class="entity domain-finance" style="left:1000px; top:240px; width:280px;">
+  <div class="entity-header">Pago</div>
+  <div class="entity-body">
+    <div class="field"><span class="pk">PK</span> <span class="name">id</span> <span class="type">Integer</span></div>
+    <div class="field"><span class="fk">FK</span> <span class="name">id_turno</span> <span class="type">&#8594; Turno</span></div>
+    <div class="field"><span class="name">monto</span> <span class="type">Decimal</span></div>
+    <div class="field"><span class="name">metodo</span> <span class="type">String</span></div>
+    <div class="field"><span class="name">obra_social</span> <span class="type">String</span></div>
+    <div class="field"><span class="name">estado</span> <span class="type">String</span></div>
+    <div class="field"><span class="name">notas</span> <span class="type">Text</span></div>
+    <div class="field"><span class="name">fecha_pago</span> <span class="type">DateTime</span></div>
+  </div>
+</div>
+
+<!-- Tarifa -->
+<div class="entity domain-finance" style="left:1060px; top:40px; width:220px;">
+  <div class="entity-header">Tarifa</div>
+  <div class="entity-body">
+    <div class="field"><span class="pk">PK</span> <span class="name">id</span> <span class="type">Integer</span></div>
+    <div class="field"><span class="name">especialidad</span> <span class="type">String</span></div>
+    <div class="field"><span class="name">precio_base</span> <span class="type">Decimal</span></div>
+  </div>
+</div>
+
+<!-- ── SUPPORT DOMAIN ── -->
+
+<!-- Receta -->
+<div class="entity domain-support" style="left:1000px; top:490px; width:310px;">
+  <div class="entity-header">Receta</div>
+  <div class="entity-body">
+    <div class="field"><span class="pk">PK</span> <span class="name">id</span> <span class="type">Integer</span></div>
+    <div class="field"><span class="fk">FK</span> <span class="name">id_turno</span> <span class="type">&#8594; Turno</span></div>
+    <div class="field"><span class="fk">FK</span> <span class="name">id_medico</span> <span class="type">&#8594; Medico</span></div>
+    <div class="field"><span class="fk">FK</span> <span class="name">id_paciente</span> <span class="type">&#8594; Paciente</span></div>
+    <div class="field"><span class="name">medicamentos</span> <span class="type">Text</span></div>
+    <div class="field"><span class="name">indicaciones</span> <span class="type">Text</span></div>
+    <div class="field"><span class="name">fecha</span> <span class="type">DateTime</span></div>
+  </div>
+</div>
+
+<!-- Notificacion -->
+<div class="entity domain-support" style="left:1370px; top:680px; width:260px;">
+  <div class="entity-header">Notificacion</div>
+  <div class="entity-body">
+    <div class="field"><span class="pk">PK</span> <span class="name">id</span> <span class="type">Integer</span></div>
+    <div class="field"><span class="name">usuario_email</span> <span class="type">String</span></div>
+    <div class="field"><span class="name">usuario_rol</span> <span class="type">String</span></div>
+    <div class="field"><span class="name">titulo</span> <span class="type">String</span></div>
+    <div class="field"><span class="name">mensaje</span> <span class="type">Text</span></div>
+    <div class="field"><span class="name">leida</span> <span class="type">Boolean</span></div>
+    <div class="field"><span class="name">tipo</span> <span class="type">String</span></div>
+  </div>
+</div>
+
+<!-- Archivo -->
+<div class="entity domain-support" style="left:380px; top:830px; width:310px;">
+  <div class="entity-header">Archivo</div>
+  <div class="entity-body">
+    <div class="field"><span class="pk">PK</span> <span class="name">id</span> <span class="type">Integer</span></div>
+    <div class="field"><span class="name">nombre_original</span> <span class="type">String</span></div>
+    <div class="field"><span class="name">nombre_almacenado</span> <span class="type">String</span></div>
+    <div class="field"><span class="name">tipo_mime</span> <span class="type">String</span></div>
+    <div class="field"><span class="name">tamano_bytes</span> <span class="type">Integer</span></div>
+    <div class="field"><span class="fk">FK</span> <span class="name">id_paciente</span> <span class="type">&#8594; Paciente</span></div>
+    <div class="field"><span class="name">descripcion</span> <span class="type">Text</span></div>
+    <div class="field"><span class="name">subido_por_email</span> <span class="type">String</span></div>
+  </div>
+</div>
+
+<!-- Mascota -->
+<div class="entity domain-support" style="left:30px; top:840px; width:260px;">
+  <div class="entity-header">Mascota</div>
+  <div class="entity-body">
+    <div class="field"><span class="pk">PK</span> <span class="name">id</span> <span class="type">Integer</span></div>
+    <div class="field"><span class="name">nombre</span> <span class="type">String</span></div>
+    <div class="field"><span class="name">especie</span> <span class="type">String</span></div>
+    <div class="field"><span class="name">raza</span> <span class="type">String</span></div>
+    <div class="field"><span class="name">peso_kg</span> <span class="type">Decimal</span></div>
+    <div class="field"><span class="name">fecha_nacimiento</span> <span class="type">Date</span></div>
+    <div class="field"><span class="name">notas</span> <span class="type">Text</span></div>
+    <div class="field"><span class="name">activo</span> <span class="type">Boolean</span></div>
+    <div class="field"><span class="fk">FK</span> <span class="name">id_dueno</span> <span class="type">&#8594; Paciente</span></div>
+  </div>
+</div>
+
+</div><!-- /er-canvas -->
+
+<div class="watermark">MiTurno Salud PRO &mdash; Diagrama generado automaticamente &mdash; 15 entidades, 10 relaciones</div>
+
+</body>
+</html>

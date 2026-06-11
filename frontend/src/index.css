@@ -11,6 +11,9 @@
   --color-primary-700: #1260e1;
   --color-primary-800: #154db6;
   --color-primary-900: #15418f;
+  --color-navy-800: #1a2542;
+  --color-navy-900: #111a33;
+  --color-navy-950: #0c1323;
 }
 
 @layer base {
@@ -32,7 +35,7 @@
     @apply border border-slate-200 text-slate-600 font-semibold rounded-xl hover:bg-slate-50 transition-all;
   }
   .card {
-    @apply bg-white rounded-2xl border border-slate-100;
+    @apply bg-white rounded-2xl border border-slate-100 shadow-sm;
   }
   .input-field {
     @apply w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm outline-none
@@ -41,19 +44,21 @@
   .badge {
     @apply text-xs px-2.5 py-0.5 rounded-full font-semibold;
   }
+
+  /* Navy sidebar items */
   .sidebar-item {
-    @apply w-full flex items-center gap-3 px-6 py-3 text-sm text-slate-500 transition-all duration-200
-           hover:bg-primary-50 hover:text-primary-600;
+    @apply w-full flex items-center gap-3 mx-3 px-3 py-2.5 text-sm rounded-xl
+           text-slate-300/80 transition-all duration-200
+           hover:bg-white/10 hover:text-white;
   }
   .sidebar-item.active {
-    @apply bg-primary-50 text-primary-600 font-semibold border-r-[3px] border-primary-600;
+    @apply bg-primary-600/90 text-white font-semibold shadow-lg shadow-primary-600/20;
   }
-  .dark .sidebar-item {
-    @apply text-slate-300 hover:bg-slate-800 hover:text-white;
-  }
-  .dark .sidebar-item.active {
-    @apply bg-primary-900/30 text-primary-400 border-primary-400;
-  }
+}
+
+.dark .card {
+  background-color: rgb(30 41 59);
+  border-color: rgb(51 65 85);
 }
 
 .dark body {
@@ -61,7 +66,15 @@
   color: rgb(226 232 240);
 }
 
-.dark .card {
-  background-color: rgb(30 41 59);
-  border-color: rgb(51 65 85);
+/* Heartbeat animation */
+@keyframes heartbeat {
+  0%, 100% { transform: scale(1); }
+  14% { transform: scale(1.15); }
+  28% { transform: scale(1); }
+  42% { transform: scale(1.1); }
+  56% { transform: scale(1); }
+}
+
+.animate-heartbeat {
+  animation: heartbeat 2s ease-in-out infinite;
 }

@@ -44,6 +44,7 @@ class Medico(Base):
     password_hash = Column(String(255), nullable=False)
     activo = Column(Boolean, default=True)
     duracion_consulta = Column(Integer, default=30)  # minutos
+    firma_digital = Column(Text, nullable=True)  # Base64 encoded PNG signature
     totp_secret = Column(String(32), nullable=True)
     totp_enabled = Column(Boolean, default=False)
     created_at = Column(DateTime, server_default=func.now())
@@ -91,6 +92,7 @@ class Turno(Base):
     telefono_paciente = Column(String(20))
     nota_medica = Column(Text, default="")
     necesita_seguimiento = Column(Boolean, default=False)
+    motivo_cancelacion = Column(String(200), nullable=True)
     creado_por = Column(String(20), default="paciente")  # paciente | recepcion | admin
     fecha_creacion = Column(DateTime, server_default=func.now())
 
@@ -191,3 +193,43 @@ class Notificacion(Base):
     leida = Column(Boolean, default=False)
     tipo = Column(String(30), default="info")
     created_at = Column(DateTime, server_default=func.now())
+
+
+class PasswordResetToken(Base):
+    __tablename__ = "password_reset_tokens"
+    id = Column(Integer, primary_key=True, index=True)
+    email = Column(String(150), nullable=False, index=True)
+    token = Column(String(64), unique=True, nullable=False, index=True)
+    expires_at = Column(DateTime, nullable=False)
+    used = Column(Boolean, default=False)
+    created_at = Column(DateTime, server_default=func.now())
+
+
+class Receta(Base):
+    __tablename__ = "recetas"
+    id = Column(Integer, primary_key=True, index=True)
+    id_turno = Column(Integer, ForeignKey("turnos.id"), nullable=False)
+    id_medico = Column(Integer, ForeignKey("medicos.id"), nullable=False)
+    id_paciente = Column(Integer, ForeignKey("pacientes.id"), nullable=False)
+    medicamentos = Column(Text, nullable=False)  # JSON string con lista de medicamentos
+    indicaciones = Column(Text, default="")
+    fecha = Column(Date, nullable=False)
+    created_at = Column(DateTime, server_default=func.now())
+
+    turno = relationship("Turno", backref="recetas")
+    medico = relationship("Medico", backref="recetas")
+    paciente = relationship("Paciente", backref="recetas")
+
+
+class HorarioMedico(Base):
+    __tablename__ = "horarios_medico"
+
+    id = Column(Integer, primary_key=True, index=True)
+    id_medico = Column(Integer, ForeignKey("medicos.id"), nullable=False)
+    dia_semana = Column(Integer, nullable=False)  # 0=Lun, 1=Mar, ..., 5=Sab
+    hora_inicio = Column(String(5), nullable=False)  # "08:00"
+    hora_fin = Column(String(5), nullable=False)  # "13:00"
+    intervalo_minutos = Column(Integer, default=30)  # slot duration
+    activo = Column(Boolean, default=True)
+
+    medico = relationship("Medico", backref="horarios")

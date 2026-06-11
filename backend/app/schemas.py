@@ -29,6 +29,15 @@ class CambiarPasswordRequest(BaseModel):
     password_nueva: str
 
 
+class ForgotPasswordRequest(BaseModel):
+    email: EmailStr
+
+
+class ResetPasswordRequest(BaseModel):
+    token: str
+    new_password: str
+
+
 # ==================== ADMINISTRADOR ====================
 
 class AdminOut(BaseModel):
@@ -133,6 +142,7 @@ class TurnoUpdate(BaseModel):
     necesita_seguimiento: bool | None = None
     fecha: date | None = None
     hora: time | None = None
+    motivo_cancelacion: str | None = None
 
 
 class TurnoOut(BaseModel):
@@ -146,6 +156,7 @@ class TurnoOut(BaseModel):
     telefono_paciente: str | None
     nota_medica: str | None
     necesita_seguimiento: bool
+    motivo_cancelacion: str | None = None
     creado_por: str | None
     fecha_creacion: datetime | None
     paciente_nombre: str | None = None
@@ -241,4 +252,36 @@ class PagoOut(BaseModel):
     estado: str
     notas: str | None
     fecha_pago: datetime | None
+    model_config = {"from_attributes": True}
+
+
+# ==================== REPORTES - CHARTS ====================
+
+class TurnoPorMes(BaseModel):
+    mes: str
+    total: int
+
+
+class IngresoSemanal(BaseModel):
+    semana: str
+    total: Decimal
+
+
+# ==================== HORARIO MÉDICO ====================
+
+class HorarioMedicoBase(BaseModel):
+    dia_semana: int
+    hora_inicio: str
+    hora_fin: str
+    intervalo_minutos: int = 30
+    activo: bool = True
+
+
+class HorarioMedicoCreate(HorarioMedicoBase):
+    pass
+
+
+class HorarioMedicoOut(HorarioMedicoBase):
+    id: int
+    id_medico: int
     model_config = {"from_attributes": True}

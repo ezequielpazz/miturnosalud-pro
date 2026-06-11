@@ -148,6 +148,43 @@ def reservar_turno(
     return {"mensaje": "Turno reservado exitosamente", "turno_id": turno.id}
 
 
+@router.post("/registro")
+def registro_paciente(data: dict, db: Session = Depends(get_db)):
+    """Public patient self-registration"""
+    nombre = data.get("nombre", "").strip()
+    email = data.get("email", "").strip()
+    dni = data.get("dni", "").strip()
+    telefono = data.get("telefono", "").strip()
+    password = data.get("password", "").strip()
+
+    if not all([nombre, email, dni, password]):
+        raise HTTPException(400, "Todos los campos obligatorios deben completarse")
+
+    # Check if email already exists
+    existing = db.query(models.Paciente).filter(models.Paciente.email == email).first()
+    if existing:
+        raise HTTPException(409, "Ya existe una cuenta con ese email")
+
+    # Check if DNI already exists
+    existing_dni = db.query(models.Paciente).filter(models.Paciente.dni == dni).first()
+    if existing_dni:
+        raise HTTPException(409, "Ya existe un paciente con ese DNI")
+
+    # Create paciente with hashed password
+    paciente = models.Paciente(
+        nombre=nombre,
+        dni=dni,
+        email=email,
+        telefono=telefono,
+        password_hash=hash_password(password),
+        activo=True,
+    )
+    db.add(paciente)
+    db.commit()
+
+    return {"ok": True, "message": "Cuenta creada exitosamente. Ya podes iniciar sesion."}
+
+
 @router.get("/turnos-hoy")
 def turnos_hoy_publico(db: Session = Depends(get_db)):
     from sqlalchemy.orm import joinedload

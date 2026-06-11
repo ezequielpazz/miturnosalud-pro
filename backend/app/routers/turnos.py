@@ -48,6 +48,7 @@ def _enrich_turno(turno: models.Turno, db: Session) -> dict:
         "telefono_paciente": turno.telefono_paciente,
         "nota_medica": turno.nota_medica,
         "necesita_seguimiento": turno.necesita_seguimiento,
+        "motivo_cancelacion": turno.motivo_cancelacion,
         "creado_por": turno.creado_por,
         "fecha_creacion": turno.fecha_creacion,
         "paciente_nombre": turno.paciente.nombre if turno.paciente else None,
@@ -301,6 +302,10 @@ def actualizar_turno(
     if data.fecha and data.hora:
         if not _verificar_disponibilidad(db, turno.id_medico, data.fecha, data.hora, excluir_turno_id=turno_id):
             raise HTTPException(status_code=409, detail="Horario no disponible")
+
+    # Validar motivo de cancelación obligatorio
+    if data.estado == "cancelado" and not data.motivo_cancelacion:
+        raise HTTPException(status_code=400, detail="Debe indicar un motivo de cancelación")
 
     cancelando = data.estado == "cancelado"
     paciente = turno.paciente

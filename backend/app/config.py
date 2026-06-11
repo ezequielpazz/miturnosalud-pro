@@ -28,6 +28,11 @@ class Settings(BaseSettings):
     SMTP_PASSWORD: str = ""
     SMTP_FROM: str = "noreply@miturnosalud.com"
 
+    ENABLE_EMAIL_REMINDERS: bool = False  # Enable automated email reminders
+
+    # Frontend URL (para links en emails)
+    FRONTEND_URL: str = "http://localhost:5173"
+
     # Modo clínica: "clinica" o "veterinaria"
     CLINIC_TYPE: str = "clinica"
     CLINIC_NAME: str = "MiTurno Salud PRO"

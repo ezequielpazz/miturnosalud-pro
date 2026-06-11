@@ -2,7 +2,8 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from app.database import get_db
 from app import models
-from app.auth import get_current_user
+from app.auth import get_current_user, require_admin
+from app.config import get_settings
 
 router = APIRouter(prefix="/api/notificaciones", tags=["Notificaciones"])
 
@@ -82,3 +83,29 @@ def marcar_todas_leidas(
     ).update({"leida": True})
     db.commit()
     return {"message": "Todas las notificaciones marcadas como leidas"}
+
+
+@router.post("/enviar-recordatorios")
+def enviar_recordatorios(
+    current: tuple = Depends(require_admin),
+    db: Session = Depends(get_db),
+):
+    """
+    Manually trigger sending tomorrow's appointment reminders (admin only).
+
+    This endpoint can be automated via cron job. Example:
+        # Run daily at 20:00 to send reminders for the next day
+        0 20 * * * curl -X POST http://localhost:8000/api/notificaciones/enviar-recordatorios \\
+            -H "Authorization: Bearer <admin_token>"
+    """
+    settings = get_settings()
+    if not settings.ENABLE_EMAIL_REMINDERS:
+        raise HTTPException(
+            status_code=400,
+            detail="Los recordatorios por email están desactivados. "
+                   "Activá ENABLE_EMAIL_REMINDERS=true en la configuración.",
+        )
+
+    from app.services.reminder_service import send_tomorrow_reminders
+    result = send_tomorrow_reminders(db)
+    return result

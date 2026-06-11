@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta, timezone
 from io import BytesIO
+import secrets
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
@@ -17,6 +18,7 @@ from app.auth import (
     create_refresh_token, validate_password, get_current_user,
     require_admin_or_medico,
 )
+from app.services.email import enviar_reset_password
 
 router = APIRouter(prefix="/api/auth", tags=["Auth"])
 
@@ -162,6 +164,95 @@ def logout(
     ).update({"revoked": True})
     db.commit()
     return {"message": "Sesion cerrada"}
+
+
+# ==================== FORGOT / RESET PASSWORD ====================
+
+
+@router.post("/forgot-password")
+@limiter.limit("5/minute")
+def forgot_password(
+    request: Request,
+    data: schemas.ForgotPasswordRequest,
+    db: Session = Depends(get_db),
+):
+    """Genera un token de reset y envia email con link de restablecimiento."""
+    # Buscar usuario en todas las tablas
+    user = None
+    for model in (models.Paciente, models.Medico, models.Administrador):
+        user = db.query(model).filter(model.email == data.email, model.activo == True).first()
+        if user:
+            break
+
+    # Siempre respondemos lo mismo para no revelar si el email existe
+    if not user:
+        return {"message": "Si el email está registrado, recibirás un enlace para restablecer tu contraseña."}
+
+    # Invalidar tokens previos no usados para ese email
+    db.query(models.PasswordResetToken).filter(
+        models.PasswordResetToken.email == data.email,
+        models.PasswordResetToken.used == False,
+    ).update({"used": True})
+
+    # Generar nuevo token
+    token = secrets.token_hex(32)
+    expires_at = datetime.now(timezone.utc) + timedelta(hours=1)
+
+    db.add(models.PasswordResetToken(
+        email=data.email,
+        token=token,
+        expires_at=expires_at,
+    ))
+    db.commit()
+
+    # Construir URL de reset
+    settings = get_settings()
+    reset_url = f"{settings.FRONTEND_URL}/reset-password?token={token}"
+
+    # Enviar email
+    enviar_reset_password(user.email, user.nombre, reset_url)
+
+    return {"message": "Si el email está registrado, recibirás un enlace para restablecer tu contraseña."}
+
+
+@router.post("/reset-password")
+@limiter.limit("5/minute")
+def reset_password(
+    request: Request,
+    data: schemas.ResetPasswordRequest,
+    db: Session = Depends(get_db),
+):
+    """Restablece la contraseña usando el token recibido por email."""
+    reset_token = db.query(models.PasswordResetToken).filter(
+        models.PasswordResetToken.token == data.token,
+        models.PasswordResetToken.used == False,
+        models.PasswordResetToken.expires_at > datetime.now(timezone.utc),
+    ).first()
+
+    if not reset_token:
+        raise HTTPException(
+            status_code=400,
+            detail="El enlace es inválido o ha expirado. Solicitá uno nuevo.",
+        )
+
+    # Validar nueva contraseña
+    validate_password(data.new_password)
+
+    # Buscar usuario y actualizar contraseña
+    user = None
+    for model in (models.Paciente, models.Medico, models.Administrador):
+        user = db.query(model).filter(model.email == reset_token.email, model.activo == True).first()
+        if user:
+            break
+
+    if not user:
+        raise HTTPException(status_code=400, detail="Usuario no encontrado.")
+
+    user.password_hash = hash_password(data.new_password)
+    reset_token.used = True
+    db.commit()
+
+    return {"message": "Contraseña restablecida exitosamente. Ya podés iniciar sesión."}
 
 
 # ==================== 2FA ====================

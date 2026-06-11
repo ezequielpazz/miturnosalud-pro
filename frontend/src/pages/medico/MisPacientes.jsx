@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { getPacientesPorMedico, updatePaciente } from '../../lib/api';
 import { useAuth } from '../../context/AuthContext';
-import { Users, Save, Flag } from 'lucide-react';
+import { Users, Save, Flag, History } from 'lucide-react';
 
 export default function MisPacientes() {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [pacientes, setPacientes] = useState([]);
   const [selected, setSelected] = useState(null);
   const [notas, setNotas] = useState('');
@@ -70,6 +72,12 @@ export default function MisPacientes() {
                     <p className="text-xs text-slate-400">DNI: {selected.dni} · Tel: {selected.telefono}</p>
                   </div>
                 </div>
+                <button
+                  onClick={() => navigate(`/medico/pacientes/${selected.id}/historial`)}
+                  className="flex items-center gap-2 text-sm font-medium text-blue-600 hover:text-blue-800 bg-blue-50 hover:bg-blue-100 px-4 py-2 rounded-lg transition-colors"
+                >
+                  <History size={16} /> Ver historial
+                </button>
               </div>
               <div>
                 <label className="block text-xs font-semibold text-slate-500 mb-2">Notas clinicas</label>

@@ -7,7 +7,8 @@ from app.config import get_settings
 from app.database import engine, Base, SessionLocal
 from app.routers import auth, medicos, pacientes, turnos, tarifas, reportes, backups
 from app.routers import publico, mascotas, obras_sociales, pagos, comprobantes
-from app.routers import archivos, notificaciones, ws
+from app.routers import archivos, notificaciones, ws, historial, recetas, busqueda
+from app.routers import horarios
 
 settings = get_settings()
 
@@ -47,6 +48,10 @@ app.include_router(pagos.router)
 app.include_router(comprobantes.router)
 app.include_router(archivos.router)
 app.include_router(notificaciones.router)
+app.include_router(historial.router)
+app.include_router(recetas.router)
+app.include_router(busqueda.router)
+app.include_router(horarios.router)
 app.include_router(ws.router)
 
 
@@ -60,6 +65,13 @@ def on_startup():
             seed_database(db)
         finally:
             db.close()
+
+
+# Email reminders: use the POST /api/notificaciones/enviar-recordatorios endpoint
+# via a system cron job or task scheduler to send daily appointment reminders.
+# Example cron (daily at 20:00):
+#   0 20 * * * curl -X POST http://localhost:8000/api/notificaciones/enviar-recordatorios \
+#       -H "Authorization: Bearer <admin_token>"
 
 
 @app.get("/api/health")

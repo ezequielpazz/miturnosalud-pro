@@ -1,0 +1,36 @@
+export default function Logo({ size = 32, className = '', pulse = false }) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width={size}
+      height={size}
+      viewBox="0 0 48 48"
+      fill="none"
+      className={`${pulse ? 'animate-heartbeat' : ''} ${className}`}
+    >
+      {/* Left laurel branch */}
+      <path d="M10 38 C10 38 8 34 9 30 C10 26 12 24 12 24" stroke="#16a34a" strokeWidth="1.5" fill="none" strokeLinecap="round"/>
+      <ellipse cx="8" cy="32" rx="2.5" ry="4" transform="rotate(-20 8 32)" fill="#22c55e" opacity="0.9"/>
+      <ellipse cx="7.5" cy="27" rx="2.2" ry="3.5" transform="rotate(-30 7.5 27)" fill="#22c55e" opacity="0.85"/>
+      <ellipse cx="8.5" cy="22" rx="2" ry="3.2" transform="rotate(-40 8.5 22)" fill="#22c55e" opacity="0.8"/>
+      <ellipse cx="10" cy="18" rx="1.8" ry="3" transform="rotate(-50 10 18)" fill="#22c55e" opacity="0.75"/>
+      <ellipse cx="12" cy="14.5" rx="1.6" ry="2.8" transform="rotate(-55 12 14.5)" fill="#22c55e" opacity="0.7"/>
+      {/* Right laurel branch */}
+      <path d="M38 38 C38 38 40 34 39 30 C38 26 36 24 36 24" stroke="#16a34a" strokeWidth="1.5" fill="none" strokeLinecap="round"/>
+      <ellipse cx="40" cy="32" rx="2.5" ry="4" transform="rotate(20 40 32)" fill="#22c55e" opacity="0.9"/>
+      <ellipse cx="40.5" cy="27" rx="2.2" ry="3.5" transform="rotate(30 40.5 27)" fill="#22c55e" opacity="0.85"/>
+      <ellipse cx="39.5" cy="22" rx="2" ry="3.2" transform="rotate(40 39.5 22)" fill="#22c55e" opacity="0.8"/>
+      <ellipse cx="38" cy="18" rx="1.8" ry="3" transform="rotate(50 38 18)" fill="#22c55e" opacity="0.75"/>
+      <ellipse cx="36" cy="14.5" rx="1.6" ry="2.8" transform="rotate(55 36 14.5)" fill="#22c55e" opacity="0.7"/>
+      {/* Heart */}
+      <path d="M24 40 C24 40 8 28 8 18 C8 12 12 8 17 8 C20.5 8 23 10 24 12.5 C25 10 27.5 8 31 8 C36 8 40 12 40 18 C40 28 24 40 24 40Z" fill="url(#heartGrad)" stroke="#dc2626" strokeWidth="0.5" opacity="0.95"/>
+      <ellipse cx="18" cy="16" rx="3" ry="2.5" fill="white" opacity="0.3" transform="rotate(-20 18 16)"/>
+      <defs>
+        <linearGradient id="heartGrad" x1="24" y1="8" x2="24" y2="40" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stopColor="#f87171"/>
+          <stop offset="100%" stopColor="#dc2626"/>
+        </linearGradient>
+      </defs>
+    </svg>
+  );
+}
